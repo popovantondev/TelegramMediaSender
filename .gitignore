@@ -1,0 +1,22 @@
+.DS_Store
+.venv/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+build/
+build-assets/
+dist/
+*.app/
+*.dmg
+*.zip
+*.session*
+profiles.json
+.coverage
+
+# Local credentials and configuration
+.env
+.env.*
+*.pem
+*.key
+auth.json
