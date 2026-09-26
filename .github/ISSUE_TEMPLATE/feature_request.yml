@@ -1,0 +1,22 @@
+name: Feature request / Предложение / Vorschlag
+description: Suggest an improvement in English, Deutsch or Русский.
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Your use case / Ваша задача / Anwendungsfall
+      description: What are you trying to do? Что хотите сделать? Was möchten Sie tun?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested change / Предложение / Änderungsvorschlag
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives / Альтернативы / Alternativen
+      description: Optional. Необязательно. Optional.

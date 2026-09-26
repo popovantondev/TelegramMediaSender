@@ -1,5 +1,11 @@
 # User guide
 
+**[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/latest)** · [Deutsch](../de/README.md) · [Русский](../ru/README.md) · [English](../en/README.md)
+
+![Telegram Media Sender](../images/app-en.png)
+
+*Application interface with demonstration files; no Telegram account is connected.*
+
 Telegram Media Sender sends numbered bundles of local files to a Telegram chat. A bundle can contain video, audio, subtitles, or any combination of them. It does not download archive history.
 
 ## First launch

@@ -1,0 +1,45 @@
+name: Bug report / Ошибка / Fehler
+description: Report a problem in English, Deutsch or Русский.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        English, Deutsch and Русский are welcome.
+        Never attach API Hash, login codes, passwords, profiles.json or .session files. Hide phone numbers and private chats in screenshots.
+        Не прикладывайте ключи, коды, пароли и файлы сессий. Скройте личные данные на снимках.
+        Keine Schlüssel, Anmeldecodes, Passwörter oder Sitzungsdateien anhängen. Persönliche Daten auf Bildern verdecken.
+  - type: input
+    id: version
+    attributes:
+      label: App version / Версия / Version
+      placeholder: 1.1.2
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: macOS and Mac model / macOS и модель Mac / macOS und Mac-Modell
+      placeholder: macOS 15, MacBook Air M2
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Как повторить / Schritte
+      description: Include the interface language and anonymized filenames if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result / Ожидание / Erwartetes Ergebnis
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result / Что произошло / Tatsächliches Ergebnis
+      description: Add the error text or an anonymized screenshot.
+    validations:
+      required: true

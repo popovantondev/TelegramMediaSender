@@ -1,5 +1,11 @@
 # Руководство пользователя
 
+**[Скачать для macOS](https://github.com/popovantondev/TelegramMediaSender/releases/latest)** · [Deutsch](../de/README.md) · [Русский](../ru/README.md) · [English](../en/README.md)
+
+![Telegram Media Sender](../images/app-ru.png)
+
+*Интерфейс с демонстрационными файлами; аккаунт Telegram не подключён.*
+
 Telegram Media Sender отправляет из локальной папки пронумерованные комплекты файлов в выбранный чат Telegram. Комплект может содержать видео, аудио, субтитры или любое их сочетание. Программа не скачивает историю архива.
 
 ## Первый запуск
