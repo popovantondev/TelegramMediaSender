@@ -16,6 +16,10 @@ profiles.json
 backups/
 previews/
 
+# Small synthetic ZIPs required by the StudyArchivePrep import integration tests.
+!tests/fixtures/study_archive_prep_publication_plan_v1/Неделя 1 03.08 - 03.08/2026-08-03/03_Скриншоты.zip
+!tests/fixtures/study_archive_prep_publication_plan_v1/Неделя 1 03.08 - 03.08/2026-08-03/04_Дополнительные_материалы.zip
+
 # Local credentials and configuration
 .env
 .env.*
