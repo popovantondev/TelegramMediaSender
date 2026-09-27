@@ -31,7 +31,7 @@ The build is not notarized by Apple. Follow the first-launch instructions in the
 
 ## Current local preview
 
-The latest local preview is `previews/release-candidate-1.2.0-rc13-2026-09-27/TelegramMediaSender-1.2.0-macOS-arm64/Telegram Media Sender.app`, built from commit `4f66e0ddf3cef5d49101d983872d3e2dd70118bb`. Its ZIP checksum and checks are in the adjacent `candidate-report.json`. It is a preview, not a published release. The previous design is preserved in `backups/design-before-unification-2026-09-27/source-and-design.zip`. See [the design audit](docs/ru/design-audit-2026-09-27.md) and [the release check](docs/release-check.md).
+The latest local preview is `previews/release-candidate-1.2.0-rc14-2026-09-27/TelegramMediaSender-1.2.0-macOS-arm64/Telegram Media Sender.app`, built from clean commit `6c11e5886ce575dc2f66eeb54a8fdcb9e3e870c1`. Its ZIP checksum and checks are in the adjacent `candidate-report.json`. It is a preview, not a published release. The previous design is preserved in `backups/design-before-unification-2026-09-27/source-and-design.zip`. See [the design audit](docs/ru/design-audit-2026-09-27.md) and [the release check](docs/release-check.md).
 
 ## Quick start
 
