@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Iterator
 
 from .i18n import tr
+from .diagnostics import DiagnosticLog
 
 
 class SenderStorage:
@@ -18,6 +19,7 @@ class SenderStorage:
             self.root = Path(root)
             self.legacy_archive_root = None
             self._prepare_root()
+            self.diagnostics = DiagnosticLog(self.root)
             return
         if sys.platform == "win32":
             base = Path(os.environ.get("APPDATA", Path.home()))
@@ -27,6 +29,7 @@ class SenderStorage:
         self.root = base / "TelegramMediaSender"
         self.legacy_archive_root = legacy if legacy.is_dir() and not legacy.is_symlink() else None
         self._prepare_root()
+        self.diagnostics = DiagnosticLog(self.root)
 
     def _prepare_root(self) -> None:
         if self.root.is_symlink():

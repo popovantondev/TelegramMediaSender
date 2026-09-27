@@ -40,6 +40,12 @@ The journal is stored in the app's local data folder. To resume, choose the save
 
 When stopping, choose **Finish the current file** or **Interrupt current transfer now**. If Telegram may have accepted the message, its result is marked uncertain and checked before resuming. If a source file changes, refresh the plan; the old fingerprint is not sent.
 
+## Diagnostics and privacy
+
+Open the local log from **Profiles** with **View diagnostics log…**. On Mac it is stored at `~/Library/Application Support/TelegramMediaSender/diagnostics.jsonl`; the current file and at most two rotated copies are kept. Open and review the log before sharing it with support. The app never sends it automatically.
+
+The log contains the app version, event types, and safe counters. It excludes exception text, Telegram codes, API Hash values, sessions, message text, chat/profile/file names, and personal file paths.
+
 ## Isolated preview launch
 
 Pass `--data-dir PATH` to the app executable when testing. Profiles, sessions, journal, and settings are created only in that folder, and old profiles are not migrated. For example, run the executable with `--data-dir /tmp/telegram-media-sender-preview-data`.

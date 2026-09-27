@@ -619,20 +619,32 @@ class WeeklyUploadThread(QThread):
                 lambda: (not self._confirmation_future.done()) and self._confirmation_future.set_result(bool(accepted)))
 
     def run(self):
+        diagnostics = self.storage.diagnostics
+        diagnostics.record("upload.started", mode=self.plan.mode.value,
+                           item_count=len(self.plan.items), file_count=self.plan.file_count)
         try:
             with self.storage.telegram_operation_lock():
                 result = asyncio.run(self._work())
+            diagnostics.record("upload.completed", mode=self.plan.mode.value,
+                               sent_count=result.get("sent", 0),
+                               skipped_count=result.get("skipped", 0),
+                               uncertain_count=result.get("uncertain", 0), result="success")
             self.completed.emit(result)
         except WeeklyStop as stop:
+            diagnostics.record("upload.cancelled", mode=self.plan.mode.value,
+                               status="immediate" if stop.immediate else "safe")
             self.cancelled.emit(stop.immediate)
         except asyncio.CancelledError:
+            diagnostics.record("upload.cancelled", mode=self.plan.mode.value, status="immediate")
             self.cancelled.emit(True)
         except UploadLimitError as error:
+            diagnostics.record("upload.failed", mode=self.plan.mode.value, error=error)
             from .i18n import tr
             limit_mb = max(1, error.limit // (1024 * 1024))
             self.failed.emit(tr("File exceeds the Telegram upload limit: {name} ({limit} MB).",
                                 self.language, name=error.name, limit=limit_mb))
         except Exception as error:
+            diagnostics.record("upload.failed", mode=self.plan.mode.value, error=error)
             self.failed.emit(str(error))
 
     async def _work(self):

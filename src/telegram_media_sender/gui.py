@@ -9,7 +9,10 @@ import threading
 from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt, QThread, Signal, QPoint, QPointF, QRectF, QEvent, QObject, QSettings, QTimer
-from PySide6.QtGui import QColor, QIcon, QPainter, QPainterPath, QPixmap, QPen, QLinearGradient, QWheelEvent, QPalette, QGuiApplication
+from PySide6.QtGui import (QColor, QIcon, QPainter, QPainterPath, QPixmap, QPen,
+                           QLinearGradient, QWheelEvent, QPalette, QGuiApplication,
+                           QDesktopServices)
+from PySide6.QtCore import QUrl
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import (
     QApplication,
@@ -184,13 +187,17 @@ class TelegramWorker(QThread):
         return answer["value"]
 
     def run(self) -> None:
+        self.storage = self.storage or SenderStorage(language=self.language)
+        diagnostics = self.storage.diagnostics
+        diagnostics.record("chat_refresh.started")
         try:
-            self.storage = self.storage or SenderStorage(language=self.language)
             with self.storage.telegram_operation_lock():
                 asyncio.run(self._work())
         except UploadCancelled as error:
+            diagnostics.record("chat_refresh.cancelled", error=error)
             self.cancelled.emit(str(error))
         except Exception as error:
+            diagnostics.record("chat_refresh.failed", error=error)
             self.failed.emit(localized_exception(error, self.language))
 
     async def _work(self) -> None:
@@ -224,6 +231,9 @@ class TelegramWorker(QThread):
                     except Exception:
                         pass
                     dialogs.append((dialog.name, dialog.entity, photo))
+            self.storage.diagnostics.record("chat_refresh.completed", result="success",
+                                            item_count=len(dialogs),
+                                            unsupported_count=unsupported_forums)
             self.chats_ready.emit({"dialogs": dialogs, "unsupported_forum_count": unsupported_forums})
         finally:
             await client.disconnect()
@@ -391,6 +401,7 @@ class MediaSenderWindow(QMainWindow):
             self.settings = QSettings("TelegramMediaSender", "TelegramMediaSender")
         self.language = normalize_language(language or self.settings.value("language", system_language()))
         self.storage = storage or SenderStorage(language=self.language)
+        self.storage.diagnostics.record("app.started", mode="desktop")
         self.setWindowTitle(f"{self.t('Telegram Media Sender')} · {build_label()}")
         self.setMinimumSize(980, 700)
         self.resize(1280, 864)
@@ -1557,6 +1568,13 @@ class MediaSenderWindow(QMainWindow):
         note = QLabel(self.t("Profiles stored by this app"))
         note.setStyleSheet("color: #617792;")
         layout.addWidget(note)
+        diagnostics = QPushButton(self.t("View diagnostics log…"))
+        diagnostics.setObjectName("subtleButton")
+        diagnostics.clicked.connect(self.open_diagnostics_log)
+        diagnostics_row = QHBoxLayout()
+        diagnostics_row.addStretch(1)
+        diagnostics_row.addWidget(diagnostics)
+        layout.addLayout(diagnostics_row)
         listing = QListWidget()
         listing.setObjectName("profileList")
         empty = QLabel(self.t("No profiles yet. Add a Telegram profile to get started."))
@@ -1625,6 +1643,14 @@ class MediaSenderWindow(QMainWindow):
         close.clicked.connect(dialog.accept)
         refresh(self.current_profile()["id"] if self.current_profile() else None)
         dialog.exec()
+
+    def open_diagnostics_log(self) -> None:
+        """Open the local log so the owner can review it before sharing."""
+        self.storage.diagnostics.record("diagnostics.viewed")
+        opened = QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.storage.diagnostics.path)))
+        if not opened:
+            self.show_message("warning", self.t("Could not open diagnostics log"),
+                              str(self.storage.diagnostics.path))
 
     def confirm_profile_deletion(self, profile: dict[str, str]) -> bool:
         dialog = QDialog(self)

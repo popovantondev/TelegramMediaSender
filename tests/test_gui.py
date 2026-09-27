@@ -10,7 +10,8 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from PySide6.QtCore import QBuffer, QIODevice, QSize, Qt, QPoint, QPointF, QTimer, QSettings
 from PySide6.QtGui import QColor, QPainter, QPixmap, QWheelEvent
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication, QLabel, QFrame, QStyle, QStyleOptionSlider, QHeaderView, QPushButton, QLineEdit, QListWidget
+from PySide6.QtWidgets import (QApplication, QLabel, QFrame, QStyle, QStyleOptionSlider,
+                               QHeaderView, QPushButton, QLineEdit, QListWidget, QDialog)
 
 from telegram_media_sender.gui import (
     MediaSenderWindow, TelegramWorker, UploadCancelled, RoundedTableOverlay,
@@ -81,6 +82,35 @@ class MediaSenderTests(unittest.TestCase):
                 self.app.processEvents()
         finally:
             window.close()
+
+    def test_diagnostics_action_opens_local_reviewable_log(self):
+        window = self.make_window()
+        try:
+            with patch("telegram_media_sender.gui.QDesktopServices.openUrl", return_value=True) as open_url:
+                window.open_diagnostics_log()
+            opened_url = open_url.call_args.args[0]
+            self.assertEqual(opened_url.toLocalFile(), str(window.storage.diagnostics.path))
+            contents = window.storage.diagnostics.path.read_text(encoding="utf-8")
+            self.assertIn('"event":"diagnostics.viewed"', contents)
+            self.assertNotIn(self.data_folder.name, contents)
+        finally:
+            window.close()
+
+    def test_profiles_dialog_exposes_diagnostics_review_in_all_languages(self):
+        for language in ("de", "ru", "en"):
+            window = self.make_window(language)
+            found = []
+
+            def inspect_dialog(dialog):
+                found.extend(button.text() for button in dialog.findChildren(QPushButton))
+                return QDialog.DialogCode.Rejected
+
+            try:
+                with patch.object(QDialog, "exec", new=inspect_dialog):
+                    window.manage_profiles()
+                self.assertIn(tr("View diagnostics log…", language), found)
+            finally:
+                window.close()
 
     def test_legacy_and_weekly_workers_share_one_telegram_operation_lock(self):
         root = Path(self.data_folder.name) / "isolated"

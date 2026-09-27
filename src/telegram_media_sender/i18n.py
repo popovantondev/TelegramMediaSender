@@ -12,6 +12,8 @@ LANGUAGE_LABELS = {"de": "Deutsch", "ru": "Русский", "en": "English"}
 
 # Russian source strings are stable translation keys; all displayed prose lives here.
 CATALOG = {
+    "View diagnostics log…": ("Diagnoseprotokoll ansehen…", "Открыть журнал диагностики…", "View diagnostics log…"),
+    "Could not open diagnostics log": ("Diagnoseprotokoll konnte nicht geöffnet werden", "Не удалось открыть журнал диагностики", "Could not open diagnostics log"),
     "Select media groups": ("Medienpakete auswählen", "Выберите медиакомплекты", "Select media groups"),
     'Source folder': ('Quellordner', 'Папка с материалами', 'Source folder'),
     'Choose folder…': ('Ordner wählen…', 'Выбрать папку…', 'Choose folder…'),

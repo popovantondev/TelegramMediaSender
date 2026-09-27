@@ -40,6 +40,12 @@ Das Journal liegt im lokalen App-Datenordner. Zum Fortsetzen wählen Sie die ges
 
 Beim Stoppen können Sie **Aktuelle Datei fertig senden** oder **Aktuelle Übertragung sofort abbrechen** wählen. Wenn Telegram die Nachricht bereits angenommen haben könnte, wird das Ergebnis als unklar markiert und vor dem Fortsetzen geprüft. Wurde eine Quelldatei geändert, aktualisieren Sie den Plan; der alte Dateifingerabdruck wird nicht gesendet.
 
+## Diagnose und Datenschutz
+
+Das lokale Protokoll lässt sich im Fenster „Profile“ über **Diagnoseprotokoll ansehen…** öffnen. Auf dem Mac liegt es unter `~/Library/Application Support/TelegramMediaSender/diagnostics.jsonl`; die aktuelle Datei und höchstens zwei rotierte Kopien bleiben erhalten. Öffnen und prüfen Sie das Protokoll, bevor Sie es an den Support weitergeben. Die App sendet es nie automatisch.
+
+Das Protokoll enthält App-Version, Ereignistypen und unkritische Zähler. Es speichert weder Fehlertexte noch Telegram-Codes, API-Hashwerte, Sitzungen, Nachrichtentexte, Chat-/Profil-/Dateinamen oder persönliche Dateipfade.
+
 ## Isolierter Vorschau-Start
 
 Übergeben Sie der Programmdatei beim Testen `--data-dir PATH`. Profile, Sitzungen, Journal und Einstellungen werden nur in diesem Ordner gespeichert; alte Profile werden nicht übernommen. Beispiel: Starten Sie die Programmdatei mit `--data-dir /tmp/telegram-media-sender-preview-data`.
