@@ -20,7 +20,7 @@ The latest packaged preview is **rc14-2026-09-27**, built from clean commit `6c1
 
 For rc14, 125/125 automated tests and 12/12 offline readiness checks pass. The ZIP integrity and strict code-signature checks pass. The packaged app was launched with isolated data and both tabs were visually inspected; tables remain present and sending is disabled without a profile or recipient. GitHub Actions passed for its source commit: [run 36311684990](https://github.com/popovantondev/TelegramMediaSender/actions/runs/36311684990). The two-hour 5,000-file soak, packaged 5,000-file scan, diagnostics smoke test and StudyArchivePrep v1 actual-exporter check were completed on rc13; rc14 contains documentation-only changes relative to that tested application source.
 
-The published GitHub release remains **1.1.2**. The 1.2.0 candidate has not been uploaded. Live Telegram acceptance in a specified private group and channel, installation/update on a second physical Mac, and a final clean release build after acceptance remain outstanding. Publication still requires the owner's explicit release command.
+The published GitHub release remains **1.1.2**. The 1.2.0 candidate has not been uploaded. Live Telegram acceptance in a specified private group and channel and a final clean release build after acceptance remain outstanding. The owner has confirmed that a second Mac will not be available. We will check a fresh data directory and install/update flow on the current Mac, but will not claim cross-device acceptance. Publication still requires the owner's explicit release command.
 
 ## English: check on another Mac
 
