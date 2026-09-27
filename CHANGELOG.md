@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Add strict `publication-plan-v1` import for prepared study publication plans, with ordered preview, file size/SHA-256 validation, and pre-send revalidation.
+- Bind imported-plan send history to project revision, Telegram profile, and chat; importing or previewing never sends automatically.
+
+## 1.2.0
+
+- Add a weekly study upload tab with deterministic week/day scanning, checkboxes, nested plan preview, and separate one-message-per-item delivery.
+- Add a durable SQLite upload journal with SHA-256 file versions, saved attempt IDs, resumable states, serialized queue ownership, and isolated `--data-dir` support.
+- Add chat-history reconciliation, streaming media uploads, network/FloodWait recovery, safe stop choices, and automatic folder refresh monitoring.
+- Preserve the media-groups tab and add RU/DE/EN documentation for the weekly workflow.
+
 ## 1.1.2
 
 - Shorten the German send-button label so it fits at the fixed window size.

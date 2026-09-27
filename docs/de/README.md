@@ -8,6 +8,8 @@
 
 Telegram Media Sender sendet nummerierte Dateipakete aus einem lokalen Ordner an einen Telegram-Chat. Ein Paket kann Video, Audio und Untertitel in beliebiger Kombination enthalten. Der Chatverlauf wird nicht heruntergeladen.
 
+Für den sequentiellen Versand von Lernmaterialien öffnen Sie **Lernen nach Wochen**. Ordnerstruktur, Reihenfolge und Fortsetzen nach Unterbrechungen stehen im [Wochenhandbuch](weekly-uploads.md).
+
 ## Erster Start
 
 1. Lade die ZIP-Datei aus GitHub Releases, entpacke sie und verschiebe die App in den Ordner „Programme“.
@@ -27,3 +29,5 @@ Vor dem Upload vergleicht die App Dateinamen und Größen mit dem Verlauf des au
 Profile und Sitzungsdateien bleiben auf diesem Mac unter `~/Library/Application Support/TelegramMediaSender/MediaGroupSender`. Ohne benanntes Profil ist die Profilauswahl zunächst leer. Benannte Profile der früheren App können einmalig übernommen werden; deren unbenanntes Standardkonto wird nicht automatisch angelegt. Die lokale Profildatei ist nur für dein macOS-Konto zugänglich; die App lädt diese Daten nicht hoch. Behandle eine `.session`-Datei wie ein Passwort: nicht weitergeben und nicht hochladen. Beende die Sitzung in Telegrams Liste aktiver Geräte, wenn du eine Kopie vermutest.
 
 Beim ersten Start richtet sich die Sprache nach macOS, falls Deutsch, Russisch oder Englisch eingestellt ist. Wähle eine andere Sprache im Fenster und starte die App neu. Die Fensterposition wird lokal gespeichert.
+
+Für eine isolierte Vorschau starten Sie die Programmdatei mit `--data-dir /tmp/telegram-media-sender-preview-data`. Profile und Sitzungen bleiben getrennt; alte Profile werden nicht übernommen.

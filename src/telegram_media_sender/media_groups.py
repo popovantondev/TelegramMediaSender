@@ -110,21 +110,6 @@ def attachment_name_key(name: str) -> str:
     return " ".join("".join(char if char.isalnum() else " " for char in normalized).split())
 
 
-def find_group_duplicates(
-    groups: list[Group], existing: set[tuple[str, int]]
-) -> list[dict[str, object]]:
-    """Find bundles with at least one same-named, same-sized remote attachment."""
-    duplicates = []
-    for index, group in enumerate(groups):
-        matches = [
-            path.name for path in group.files
-            if (attachment_name_key(path.name), path.stat().st_size) in existing
-        ]
-        if matches:
-            duplicates.append({"index": index, "name": group.name, "files": matches})
-    return duplicates
-
-
 def scan_folder(folder: Path, language: str = "ru") -> tuple[list[Group], list[GroupIssue]]:
     if folder.is_symlink() or not folder.is_dir():
         raise ValueError(tr("Select a regular folder containing files.", language))

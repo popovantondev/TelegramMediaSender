@@ -8,6 +8,8 @@
 
 Telegram Media Sender sends numbered bundles of local files to a Telegram chat. A bundle can contain video, audio, subtitles, or any combination of them. It does not download archive history.
 
+For sequential study material uploads, open **Study by week**. See the [weekly upload guide](weekly-uploads.md) for folder layout, ordering, and resume behavior.
+
 ## First launch
 
 1. Download the ZIP from GitHub Releases, unzip it, and move the app to Applications.
@@ -29,3 +31,5 @@ Profiles and session files stay on this Mac under `~/Library/Application Support
 ## Languages and window
 
 The first launch follows the macOS language when it is German, Russian, or English. Select another language in the app and restart to apply it. The window position is saved locally.
+
+For an isolated preview copy, launch the app executable with `--data-dir /tmp/telegram-media-sender-preview-data`. Profiles and sessions stay separate, and old profiles are not migrated.

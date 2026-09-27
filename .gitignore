@@ -13,6 +13,8 @@ dist/
 *.session*
 profiles.json
 .coverage
+backups/
+previews/
 
 # Local credentials and configuration
 .env

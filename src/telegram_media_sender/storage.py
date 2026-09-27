@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import os
 import sys
+import fcntl
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
 
 from .i18n import tr
 
@@ -30,3 +33,17 @@ class SenderStorage:
             raise ValueError(tr("Invalid application data folder.", self.language))
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.root.chmod(0o700)
+
+    @contextmanager
+    def telegram_operation_lock(self) -> Iterator[None]:
+        """Serialize every Telegram operation that shares this app data folder."""
+        lock_path = self.root / "telegram-operation.lock"
+        with lock_path.open("a+") as handle:
+            try:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise RuntimeError(tr("Another Telegram operation is already running.", self.language)) from exc
+            try:
+                yield
+            finally:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)

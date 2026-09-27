@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import argparse
 import sqlite3
 import sys
 import threading
@@ -38,13 +39,20 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QFormLayout,
+    QTabWidget,
+    QRadioButton,
 )
 
+from .build_info import build_label
 from .i18n import CATALOG, LANGUAGE_LABELS, LANGUAGES, normalize_language, system_language, tr
-from .media_groups import Group, GroupIssue, attachment_name_key, find_group_duplicates, scan_folder
-from .permissions import can_publish
+from .media_groups import Group, GroupIssue, scan_folder
+from .permissions import can_publish, is_forum_chat
 from .profiles import SenderProfileStore
 from .storage import SenderStorage
+from .ui_design import (RoundedTableOverlay, RoundedScrollBar, light_palette, style_light_dialog,
+                        BUTTON_STYLES, COMMON_STYLES, button_role, STATUS_COLORS, format_size, flat_icon, themed_message)
+from .weekly_widget import WeeklyStudyWidget
+from .weekly_worker import WeeklyUploadThread
 
 
 class UploadCancelled(Exception):
@@ -100,67 +108,6 @@ class ScrollWheelForwarder(QObject):
         return False
 
 
-class RoundedTableOverlay(QWidget):
-    """Clip square child-widget corners and draw one continuous table outline."""
-
-    def __init__(self, parent: QWidget, background: str = "#f3f6fc"):
-        super().__init__(parent)
-        self.background = QColor(background)
-        self.border = QColor("#dce6f4")
-        self.radius = 13.0
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        parent.installEventFilter(self)
-        self.setGeometry(parent.rect())
-        self.raise_()
-
-    def eventFilter(self, watched, event) -> bool:
-        if watched is self.parentWidget() and event.type() == QEvent.Type.Resize:
-            self.setGeometry(watched.rect())
-            scrollbar = watched.findChild(RoundedScrollBar, "fullHeightVerticalScrollBar")
-            if scrollbar is not None:
-                scrollbar.setGeometry(watched.width() - scrollbar.width() - 1, 1,
-                                      scrollbar.width(), max(0, watched.height() - 2))
-            self.raise_()
-        return super().eventFilter(watched, event)
-
-    def showEvent(self, event) -> None:
-        super().showEvent(event)
-        self.raise_()
-
-    def paintEvent(self, _event) -> None:
-        bounds = QRectF(self.rect())
-        inner = bounds.adjusted(1, 1, -1, -1)
-        outer_path = QPainterPath()
-        outer_path.addRect(bounds)
-        inner_path = QPainterPath()
-        inner_path.addRoundedRect(inner, self.radius - 1, self.radius - 1)
-        outside_path = outer_path.subtracted(inner_path)
-
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.fillPath(outside_path, self.background)
-        border_path = QPainterPath()
-        border_path.addRoundedRect(bounds.adjusted(0.5, 0.5, -0.5, -0.5),
-                                   self.radius, self.radius)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.setPen(QPen(self.border, 1.0))
-        painter.drawPath(border_path)
-        table = self.parentWidget().findChild(QTableWidget)
-        if table is not None:
-            header = table.horizontalHeader()
-            separator_y = header.mapTo(self.parentWidget(), QPoint(0, header.height())).y()
-            scrollbar_left = table.verticalScrollBar().mapTo(
-                self.parentWidget(), QPoint(0, 0)
-            ).x()
-            painter.setPen(QPen(self.border, 1.0))
-            painter.drawLine(QPointF(1, separator_y - 0.5),
-                             QPointF(scrollbar_left, separator_y - 0.5))
-        painter.end()
-
-
 class CenteredSelectionPanel(QFrame):
     """Place its checkbox at the exact geometric center across native styles."""
 
@@ -204,67 +151,18 @@ class CenteredTextButton(QPushButton):
         painter.end()
 
 
-class RoundedScrollBar(QScrollBar):
-    """Paint a slim scrollbar with inset, rounded ends on both axes."""
-
-    def __init__(self, orientation: Qt.Orientation, parent=None):
-        super().__init__(orientation, parent)
-
-    def paintEvent(self, _event) -> None:
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.fillRect(self.rect(), QColor("#e6edf7"))
-        vertical = self.orientation() == Qt.Orientation.Vertical
-        if vertical:
-            track = QRectF(4, 8, max(0, self.width() - 8), max(0, self.height() - 16))
-        else:
-            track = QRectF(8, 4, max(0, self.width() - 16), max(0, self.height() - 8))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor("#e6edf7"))
-        painter.drawRoundedRect(track, 5, 5)
-        if self.maximum() <= self.minimum() or track.isEmpty():
-            return
-        track_length = track.height() if vertical else track.width()
-        page = max(1, self.pageStep())
-        handle_length = min(track_length, max(34.0, track_length * page /
-                                             (self.maximum() - self.minimum() + page)))
-        travel = max(0.0, track_length - handle_length)
-        value_range = max(1, self.maximum() - self.minimum())
-        offset = travel * (self.value() - self.minimum()) / value_range
-        if vertical:
-            handle = QRectF(track.left() + 1, track.top() + offset,
-                            max(0, track.width() - 2), handle_length)
-        else:
-            handle = QRectF(track.left() + offset, track.top() + 1,
-                            handle_length, max(0, track.height() - 2))
-        painter.setBrush(QColor("#086ee4" if self.underMouse() else "#1680ed"))
-        painter.drawRoundedRect(handle, 4, 4)
-
-
 class TelegramWorker(QThread):
     chats_ready = Signal(object)
-    progress = Signal(str)
-    completed = Signal(str)
     cancelled = Signal(str)
     failed = Signal(str)
     input_requested = Signal(str, bool, object)
-    duplicate_check = Signal(str)
-    duplicate_review = Signal(object, object)
-    task_progress = Signal(object)
 
-    @staticmethod
-    def completion_summary(sent: int, skipped: int, language: str = "en") -> str:
-        return tr("Sent groups: {sent}\nSkipped duplicates: {skipped}\n{note}", language,
-                  sent=sent, skipped=skipped,
-                  note=tr("Uploading media groups separately from the subtitle album.", language))
-
-    def __init__(self, *, groups: list[Group] | None = None, target=None, profile=None, profile_store=None,
-                 language: str = "en"):
+    def __init__(self, *, profile=None, profile_store=None,
+                 language: str = "en", storage: SenderStorage | None = None):
         super().__init__()
-        self.groups = groups
-        self.target = target
         self.profile = profile
         self.profile_store = profile_store
+        self.storage = storage
         self.language = normalize_language(language)
         self._cancel_event = threading.Event()
 
@@ -285,25 +183,18 @@ class TelegramWorker(QThread):
             raise RuntimeError(tr("Telegram sign-in cancelled.", self.language))
         return answer["value"]
 
-    def ask_duplicate_review(self, duplicates: list[dict]) -> str:
-        event = threading.Event()
-        answer = {"choice": "cancel"}
-        self.duplicate_review.emit(duplicates, (event, answer))
-        if not event.wait(300):
-            raise RuntimeError(tr("Duplicate review was not received.", self.language))
-        return answer["choice"]
-
     def run(self) -> None:
         try:
-            asyncio.run(self._work())
+            self.storage = self.storage or SenderStorage(language=self.language)
+            with self.storage.telegram_operation_lock():
+                asyncio.run(self._work())
         except UploadCancelled as error:
             self.cancelled.emit(str(error))
         except Exception as error:
             self.failed.emit(localized_exception(error, self.language))
 
     async def _work(self) -> None:
-        self.task_progress.emit({"phase": tr("Stage 1/3 · Connecting to Telegram", self.language), "overall": 0})
-        storage = SenderStorage(language=self.language)
+        storage = self.storage or SenderStorage(language=self.language)
         profile = self.profile
         if profile is None:
             raise RuntimeError(tr("Add a Telegram profile before loading chats.", self.language))
@@ -312,143 +203,28 @@ class TelegramWorker(QThread):
             raise RuntimeError(tr("Fill in the API ID and API Hash in the profile.", self.language))
 
         from telethon import TelegramClient
+        from .telegram_auth import connect_and_authorize
 
         client = TelegramClient(str(session), int(profile["api_id"]), profile["api_hash"])
         try:
             self.check_cancel()
-            await client.connect()
-            self.check_cancel()
-            if not await client.is_user_authorized():
-                if not profile.get("phone"):
-                    raise RuntimeError(tr("The profile has no phone number.", self.language))
-                sent_code = await client.send_code_request(profile["phone"])
-                code = await asyncio.to_thread(self.ask_input, tr("Telegram sign-in code", self.language), False)
-                try:
-                    await client.sign_in(profile["phone"], code, phone_code_hash=sent_code.phone_code_hash)
-                except Exception as error:
-                    from telethon.errors import SessionPasswordNeededError
-                    if not isinstance(error, SessionPasswordNeededError):
-                        raise
-                    password = await asyncio.to_thread(self.ask_input, tr("Telegram two-step verification password", self.language), True)
-                    await client.sign_in(password=password)
-            if self.groups is None:
-                dialogs = []
-                async for dialog in client.iter_dialogs():
-                    self.check_cancel()
-                    if can_publish(dialog.entity):
-                        photo = None
-                        try:
-                            photo = await client.download_profile_photo(dialog.entity, file=bytes, download_big=False)
-                        except Exception:
-                            pass
-                        dialogs.append((dialog.name, dialog.entity, photo))
-                self.chats_ready.emit(dialogs)
-                return
-
-            # Compare attachment filename and byte size with this exact recipient's
-            # history. If Telegram accepted a group just before the connection broke,
-            # a retry in a later run must not publish those files again.
-            self.task_progress.emit({"phase": tr("Stage 1/3 · Checking chat for duplicates", self.language), "overall": 0})
-            existing = set()
-            async for message in client.iter_messages(self.target, limit=None):
+            await connect_and_authorize(client, profile, self.ask_input,
+                                        self.language, self.check_cancel)
+            dialogs = []
+            unsupported_forums = 0
+            async for dialog in client.iter_dialogs():
                 self.check_cancel()
-                file = getattr(message, "file", None)
-                name, size = getattr(file, "name", None), getattr(file, "size", None)
-                if name and type(size) is int:
-                    existing.add((attachment_name_key(name), size))
-            self.check_cancel()
-            duplicates = find_group_duplicates(self.groups, existing)
-            choice = "all"
-            if duplicates:
-                choice = await asyncio.to_thread(self.ask_duplicate_review, duplicates)
-                if choice == "cancel":
-                    self.cancelled.emit(tr("Upload stopped. Review the matching groups.", self.language))
-                    return
-            for duplicate in duplicates:
-                self.task_progress.emit({"row_status": (duplicate["name"], "duplicate")})
-            duplicate_indexes = {item["index"] for item in duplicates}
-            to_send = ([group for index, group in enumerate(self.groups) if index not in duplicate_indexes]
-                       if choice == "skip" else self.groups)
-            if not to_send:
-                self.cancelled.emit(tr("All selected groups were skipped as duplicates.", self.language))
-                return
-
-            total_bytes = sum(path.stat().st_size for group in to_send for path in group.files)
-            completed_bytes = 0
-            skipped_count = len(self.groups) - len(to_send)
-            for index, group in enumerate(to_send, 1):
-                sizes = [path.stat().st_size for path in group.files]
-                group_bytes = sum(sizes)
-                group_done = 0
-                label = tr("Group {index}/{total} · {name}", self.language,
-                           index=index, total=len(to_send), name=group.name)
-                self.task_progress.emit({"row_status": (group.name, "sending")})
-
-                async def send_segment(paths: list[Path], title: str, *, force_document=False,
-                                       supports_streaming=False):
-                    nonlocal group_done
-                    self.check_cancel()
-                    segment_sizes = [path.stat().st_size for path in paths]
-                    file_index, last_value, segment_done = 0, 0.0, 0
-                    self.task_progress.emit({"phase": tr("Stage 2/3 · {title} · group {index}/{total}", self.language,
-                        title=title, index=index, total=len(to_send)),
-                        "overall": int(5 + 90 * (completed_bytes + group_done) / max(total_bytes, 1)),
-                        "group": int(100 * group_done / max(group_bytes, 1)), "group_text": label,
-                        "file": tr("Preparing · {name}", self.language, name=paths[0].name), "file_progress": 0})
-
-                    def upload_progress(current, total):
-                        nonlocal file_index, last_value, segment_done
-                        self.check_cancel()
-                        if len(paths) > 1 and total == len(paths) and 0 <= current <= total:
-                            position = min(float(current), float(len(paths)))
-                            file_index = min(int(position), len(paths) - 1)
-                            fraction = position - file_index
-                            current_bytes = int(segment_sizes[file_index] * fraction)
-                        else:
-                            if current < last_value:
-                                file_index = min(file_index + 1, len(paths) - 1)
-                            last_value = current
-                            fraction = min(max(float(current) / max(float(total), 1), 0), 1)
-                            current_bytes = int(segment_sizes[file_index] * fraction)
-                        segment_done = sum(segment_sizes[:file_index]) + current_bytes
-                        in_group = group_done + segment_done
-                        self.task_progress.emit({"phase": tr("Stage 2/3 · {title} · group {index}/{total}", self.language,
-                            title=title, index=index, total=len(to_send)),
-                            "overall": int(5 + 90 * (completed_bytes + in_group) / max(total_bytes, 1)),
-                            "group": int(100 * in_group / max(group_bytes, 1)), "group_text": label,
-                            "file": f"{title}: {paths[file_index].name}", "file_progress": int(100 * fraction)})
-
-                    await client.send_file(self.target, [str(path) for path in paths] if len(paths) > 1 else str(paths[0]),
-                        force_document=force_document, supports_streaming=supports_streaming,
-                        nosound_video=True, progress_callback=upload_progress)
-                    self.check_cancel()
-                    group_done += sum(segment_sizes)
-
-                try:
-                    for media in group.media:
-                        suffix = media.suffix.casefold()
-                        is_video = suffix in {".mp4", ".m4v", ".mov", ".mkv", ".webm", ".avi"}
-                        await send_segment([media], tr("Video" if is_video else "Audio", self.language),
-                            supports_streaming=is_video and suffix in {".mp4", ".m4v"})
-                    # Send every matched SRT, in Telegram-sized document batches.
-                    subtitles = group.russian + group.german
-                    for start in range(0, len(subtitles), 10):
-                        await send_segment(subtitles[start:start + 10],
-                                           tr("subtitles", self.language), force_document=True)
-                except Exception:
-                    self.task_progress.emit({"row_status": (group.name, "error")})
-                    raise
-                self.task_progress.emit({"row_status": (group.name, "sent")})
-                completed_bytes += group_bytes
-                self.task_progress.emit({"phase": tr("Stage 2/3 · Sent groups {index}/{total}", self.language,
-                    index=index, total=len(to_send)),
-                    "overall": int(5 + 90 * completed_bytes / max(total_bytes, 1)),
-                    "group": 100, "group_text": tr("Group {index}/{total} · {name}", self.language,
-                        index=index, total=len(to_send), name=group.name),
-                    "file": tr("Group transferred to Telegram", self.language), "file_progress": 100})
-            self.task_progress.emit({"phase": tr("Stage 3/3 · Finishing upload", self.language), "overall": 100,
-                                     "group": 100, "file": tr("Done", self.language), "file_progress": 100})
-            self.completed.emit(self.completion_summary(len(to_send), skipped_count, self.language))
+                if is_forum_chat(dialog.entity):
+                    unsupported_forums += 1
+                    continue
+                if can_publish(dialog.entity):
+                    photo = None
+                    try:
+                        photo = await client.download_profile_photo(dialog.entity, file=bytes, download_big=False)
+                    except Exception:
+                        pass
+                    dialogs.append((dialog.name, dialog.entity, photo))
+            self.chats_ready.emit({"dialogs": dialogs, "unsupported_forum_count": unsupported_forums})
         finally:
             await client.disconnect()
 
@@ -485,8 +261,9 @@ class SelectionCheckBox(QCheckBox):
 class PopupComboBox(QComboBox):
     """A light popup whose complete window is painted by the application."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *, compact=False):
         super().__init__(parent)
+        self.compact = compact
         self.setStyle(QStyleFactory.create("Fusion"))
         self._popup: LightComboPopup | None = None
         self.setPalette(light_palette())
@@ -498,6 +275,11 @@ class PopupComboBox(QComboBox):
                                    width: 32px; border: 0; }
             QComboBox::down-arrow { image: none; width: 0; height: 0; }
         """)
+        if compact:
+            self.setStyleSheet(self.styleSheet() + """
+                QComboBox { padding-right: 0px; }
+                QComboBox::drop-down { width: 22px; }
+            """)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setMinimumHeight(48)
 
@@ -505,7 +287,7 @@ class PopupComboBox(QComboBox):
         super().paintEvent(event)
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        center = QPointF(self.width() - 19, self.height() / 2)
+        center = QPointF(self.width() - (14 if self.compact else 19), self.height() / 2)
         chevron = QPainterPath()
         chevron.moveTo(center.x() - 4.5, center.y() - 2)
         chevron.lineTo(center.x(), center.y() + 2.5)
@@ -525,21 +307,6 @@ class PopupComboBox(QComboBox):
         if self._popup is not None:
             self._popup.close()
             self._popup = None
-
-
-def light_palette() -> QPalette:
-    palette = QPalette()
-    for group in (QPalette.ColorGroup.Active, QPalette.ColorGroup.Inactive, QPalette.ColorGroup.Disabled):
-        palette.setColor(group, QPalette.ColorRole.Window, QColor("#f3f6fc"))
-        palette.setColor(group, QPalette.ColorRole.Base, QColor("#ffffff"))
-        palette.setColor(group, QPalette.ColorRole.AlternateBase, QColor("#f8faff"))
-        palette.setColor(group, QPalette.ColorRole.Button, QColor("#ffffff"))
-        palette.setColor(group, QPalette.ColorRole.WindowText, QColor("#1c2d49"))
-        palette.setColor(group, QPalette.ColorRole.Text, QColor("#1c2d49"))
-        palette.setColor(group, QPalette.ColorRole.ButtonText, QColor("#1c2d49"))
-        palette.setColor(group, QPalette.ColorRole.Highlight, QColor("#e6f1ff"))
-        palette.setColor(group, QPalette.ColorRole.HighlightedText, QColor("#17477f"))
-    return palette
 
 
 class LightComboPopup(QWidget):
@@ -569,13 +336,14 @@ class LightComboPopup(QWidget):
         inner.addWidget(self.list)
 
     def show_for(self, combo: PopupComboBox) -> None:
+        row_height = 34 if combo.compact else 46
         for index in range(combo.count()):
             item = QListWidgetItem(combo.itemIcon(index), combo.itemText(index))
-            item.setSizeHint(QSize(0, 46))
+            item.setSizeHint(QSize(0, row_height))
             self.list.addItem(item)
         self.list.setCurrentRow(combo.currentIndex())
-        width = max(combo.width(), 180)
-        height = min(combo.count(), 8) * 46 + 12
+        width = combo.width() if combo.compact else max(combo.width(), 180)
+        height = min(combo.count(), 8) * row_height + 12
         self.resize(width, height)
         screen = QGuiApplication.screenAt(combo.mapToGlobal(QPoint(0, 0))) or QGuiApplication.primaryScreen()
         area = screen.availableGeometry()
@@ -605,25 +373,6 @@ class LightComboPopup(QWidget):
         painter.end()
 
 
-def style_light_dialog(dialog: QDialog) -> None:
-    dialog.setPalette(light_palette())
-    dialog.setStyleSheet("""
-        QDialog, QMessageBox { background: #f3f6fc; color: #1c2d49; font-size: 13px; }
-        QLabel { background: transparent; color: #1c2d49; }
-        QLineEdit { background: #ffffff; color: #1c2d49; selection-background-color: #e6f1ff;
-                    border: 1px solid #d5dfed; border-radius: 9px; padding: 8px 11px;
-                    min-height: 24px; }
-        QLineEdit:focus { border-color: #8fb8ed; }
-        QPushButton { background: #ffffff; color: #1c2d49; border: 1px solid #d5dfed;
-                      border-radius: 9px; padding: 8px 14px; min-height: 26px; }
-        QPushButton:hover { background: #f0f6ff; border-color: #9abbea; }
-        QListWidget { background: #ffffff; color: #1c2d49; border: 1px solid #d5dfed;
-                      border-radius: 10px; outline: 0; padding: 5px; }
-        QListWidget::item { padding: 7px 10px; border-radius: 7px; }
-        QListWidget::item:selected { background: #e6f1ff; color: #17477f; }
-    """)
-
-
 def dialog_button(label: str, dialog: QDialog, *, default: bool = False) -> QPushButton:
     button = QPushButton(label, dialog)
     button.setFixedHeight(44)
@@ -633,19 +382,24 @@ def dialog_button(label: str, dialog: QDialog, *, default: bool = False) -> QPus
 
 class MediaSenderWindow(QMainWindow):
     def __init__(self, language: str | None = None, *, persist_state: bool = True,
-                 storage: SenderStorage | None = None):
+                 storage: SenderStorage | None = None, settings_file: Path | None = None):
         super().__init__()
         self.persist_state = persist_state
-        self.settings = QSettings("TelegramMediaSender", "TelegramMediaSender")
+        if settings_file is not None:
+            self.settings = QSettings(str(settings_file), QSettings.Format.IniFormat)
+        else:
+            self.settings = QSettings("TelegramMediaSender", "TelegramMediaSender")
         self.language = normalize_language(language or self.settings.value("language", system_language()))
         self.storage = storage or SenderStorage(language=self.language)
-        self.setWindowTitle(self.t("Telegram Media Sender"))
-        self.setFixedSize(1280, 864)
+        self.setWindowTitle(f"{self.t('Telegram Media Sender')} · {build_label()}")
+        self.setMinimumSize(980, 700)
+        self.resize(1280, 864)
         self.setPalette(light_palette())
         self.folder: Path | None = None
         self.groups: list[Group] = []
         self.row_checks: list[QCheckBox] = []
         self.worker: TelegramWorker | None = None
+        self._close_when_worker_finished = False
         self.chat_entities = []
         self.profile_store = SenderProfileStore(self.storage.root, self.language)
         self.migration_error = None
@@ -658,6 +412,7 @@ class MediaSenderWindow(QMainWindow):
 
         page = QWidget()
         layout = QVBoxLayout(page)
+        page_layout = layout
         layout.setContentsMargins(26, 22, 26, 22)
         layout.setSpacing(9)
 
@@ -682,8 +437,8 @@ class MediaSenderWindow(QMainWindow):
         header_text.addWidget(intro)
         header.addLayout(header_text, 1)
         header.addWidget(QLabel(self.t("Language")))
-        self.language_combo = PopupComboBox()
-        self.language_combo.setFixedSize(140, 44)
+        self.language_combo = PopupComboBox(compact=True)
+        self.language_combo.setFixedSize(94, 44)
         self.language_combo.addItems([LANGUAGE_LABELS[code] for code in LANGUAGES])
         self.language_combo.setCurrentIndex(LANGUAGES.index(self.language))
         self.language_combo.currentIndexChanged.connect(self.language_changed)
@@ -730,6 +485,15 @@ class MediaSenderWindow(QMainWindow):
         profile_column.addLayout(profile_controls)
         target_profile_layout.addLayout(profile_column, 1)
         layout.addWidget(target_profile_card)
+
+        self.mode_tabs = QTabWidget()
+        self.mode_tabs.setObjectName("modeTabs")
+        self.mode_tabs.tabBar().setDrawBase(False)
+        media_page = QWidget()
+        layout.addWidget(self.mode_tabs, 1)
+        layout = QVBoxLayout(media_page)
+        layout.setContentsMargins(12, 10, 12, 3)
+        layout.setSpacing(8)
         self.reload_profiles()
 
         folder_card = QFrame()
@@ -737,7 +501,7 @@ class MediaSenderWindow(QMainWindow):
         folder_outer = QVBoxLayout(folder_card)
         folder_outer.setContentsMargins(14, 9, 14, 11)
         folder_outer.setSpacing(5)
-        folder_title = QLabel(self.t("Media group folder"))
+        folder_title = QLabel(self.t("Source folder"))
         folder_title.setObjectName("fieldTitle")
         folder_outer.addWidget(folder_title)
         folder_row = QHBoxLayout()
@@ -745,11 +509,14 @@ class MediaSenderWindow(QMainWindow):
         self.folder_label = QLabel(self.t("No folder selected"))
         self.folder_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.folder_label.setWordWrap(True)
-        self.choose_folder_button = QPushButton(self.t("Choose…"))
+        self.choose_folder_button = QPushButton(self.t("Choose folder…"))
         self.choose_folder_button.setMinimumWidth(128)
         self.choose_folder_button.clicked.connect(self.choose_folder)
         folder_row.addWidget(self.folder_label, 1)
         folder_row.addWidget(self.choose_folder_button)
+        self.refresh_folder_button = QPushButton(self.t("Refresh"))
+        self.refresh_folder_button.clicked.connect(self.scan)
+        folder_row.addWidget(self.refresh_folder_button)
         self.folder_label.setObjectName("folderPath")
         folder_outer.addLayout(folder_row)
         layout.addWidget(folder_card)
@@ -758,9 +525,9 @@ class MediaSenderWindow(QMainWindow):
         list_card.setObjectName("listCard")
         list_layout = QVBoxLayout(list_card)
         list_layout.setContentsMargins(0, 0, 0, 0)
-        list_layout.setSpacing(0)
+        list_layout.setSpacing(8)
         list_toolbar = QHBoxLayout()
-        list_toolbar.setContentsMargins(14, 8, 14, 8)
+        list_toolbar.setContentsMargins(0, 0, 0, 0)
         list_toolbar.setSpacing(12)
         self.selection_count = QLabel(self.t("No groups found"))
         self.selection_count.setObjectName("selectionBadge")
@@ -768,6 +535,7 @@ class MediaSenderWindow(QMainWindow):
         self.clear_button = QPushButton(self.t("Clear selection"))
         self.select_all_button.clicked.connect(lambda: self.set_all_checks(Qt.CheckState.Checked))
         self.clear_button.clicked.connect(lambda: self.set_all_checks(Qt.CheckState.Unchecked))
+        list_toolbar.addWidget(QLabel(self.t("Select media groups")))
         list_toolbar.addStretch(1)
         list_toolbar.addWidget(self.selection_count)
         list_toolbar.addWidget(self.select_all_button)
@@ -789,10 +557,6 @@ class MediaSenderWindow(QMainWindow):
         scrollbar_inset.setFixedWidth(16)
         table_content_layout.addWidget(scrollbar_inset)
         table_frame_layout.addWidget(table_content, 1)
-        self.bottom_scrollbar_gutter = QWidget()
-        self.bottom_scrollbar_gutter.setObjectName("bottomScrollbarGutter")
-        self.bottom_scrollbar_gutter.setFixedHeight(12)
-        table_frame_layout.addWidget(self.bottom_scrollbar_gutter)
         self.scroll_wheel_forwarder = ScrollWheelForwarder(self.table)
         self.table.setHorizontalHeader(QHeaderView(Qt.Orientation.Horizontal, self.table))
         self.table.setHorizontalHeaderLabels([self.t(key) for key in ("Selection", "Group name", "Group files", "Size and status")])
@@ -831,9 +595,10 @@ class MediaSenderWindow(QMainWindow):
 
         self.status = QLabel(self.t("Choose a folder and load the chat list."))
         self.status.setWordWrap(True)
-        layout.addWidget(self.status)
 
         progress_card = QFrame()
+        self.progress_card = progress_card
+        progress_card.setMinimumHeight(106)
         progress_card.setObjectName("progressCard")
         progress_layout = QHBoxLayout(progress_card)
         progress_layout.setContentsMargins(18, 14, 18, 14)
@@ -858,52 +623,45 @@ class MediaSenderWindow(QMainWindow):
         self.group_progress = self.make_progress("%p%")
         self.overall_progress = self.make_progress("%p%")
         progress_bars.addLayout(self.progress_row(self.t("Current file"), self.file_progress))
-        progress_bars.addLayout(self.progress_row(self.t("Media group"), self.group_progress))
+        self.group_progress_row = self.progress_row(self.t("Media group"), self.group_progress)
+        progress_bars.addLayout(self.group_progress_row)
         progress_bars.addLayout(self.progress_row(self.t("All uploads"), self.overall_progress))
         self.overall_progress.setObjectName("overallProgress")
         progress_layout.addLayout(progress_bars, 2)
 
-        send_column = QVBoxLayout()
-        send_column.addStretch(1)
         self.send_button = QPushButton()
-        self.send_button.setObjectName("sendButton")
-        self.send_button.setMinimumSize(200, 76)
+        self.style_send_button(self.send_button)
         self.send_button.setToolTip(self.t("Send selected media groups to Telegram"))
-        self.send_button.setAccessibleName(self.t("Send selected groups"))
-        send_button_layout = QHBoxLayout(self.send_button)
-        send_button_layout.setContentsMargins(14, 8, 18, 8)
-        send_button_layout.setSpacing(12)
-        send_button_layout.addStretch(1)
-        send_icon = QLabel()
-        send_icon.setObjectName("sendButtonIcon")
-        send_icon.setPixmap(self.telegram_plane_icon().pixmap(24, 24))
-        send_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        send_icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        send_button_layout.addWidget(send_icon)
-        send_label = QLabel(self.t("Send selected\ngroups"))
-        send_label.setObjectName("sendButtonLabel")
-        send_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        send_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        send_button_layout.addWidget(send_label)
-        send_button_layout.addStretch(1)
         self.send_button.setDefault(True)
         self.send_button.setEnabled(False)
         self.send_button.clicked.connect(self.send_selected)
+        self.media_footer = QHBoxLayout()
+        self.media_footer.setSpacing(12)
+        self.media_footer.addWidget(self.status, 1, Qt.AlignmentFlag.AlignVCenter)
+        self.media_footer.addWidget(self.send_button, 0, Qt.AlignmentFlag.AlignVCenter)
+        layout.addLayout(self.media_footer)
         self.cancel_button = QPushButton(self.t("Cancel"))
         self.cancel_button.setObjectName("cancelButton")
         self.cancel_button.setFixedSize(104, 44)
         self.cancel_button.setEnabled(False)
         self.cancel_button.setToolTip(self.t("Stop the current operation"))
         self.cancel_button.clicked.connect(self.cancel_operation)
-        action_buttons = QHBoxLayout()
-        action_buttons.setSpacing(14)
-        action_buttons.addWidget(self.cancel_button, 0, Qt.AlignmentFlag.AlignVCenter)
-        action_buttons.addWidget(self.send_button)
-        send_column.addLayout(action_buttons)
-        send_column.addStretch(1)
-        progress_layout.addLayout(send_column)
-        layout.addWidget(progress_card)
+        page_layout.addWidget(progress_card)
 
+        self.mode_tabs.addTab(media_page, self.t("Media groups"))
+        self.weekly_widget = WeeklyStudyWidget(self.language, self.settings, self,
+                                               data_dir=self.storage.root)
+        self.style_send_button(self.weekly_widget.send_button)
+        self.weekly_widget.send_button.setToolTip(self.t("Check and send"))
+        self.weekly_widget.tree.setVerticalScrollBar(
+            RoundedScrollBar(Qt.Orientation.Vertical, self.weekly_widget.tree))
+        self.weekly_tree_overlay = RoundedTableOverlay(self.weekly_widget.tree_frame)
+        self.weekly_widget.plan_context_provider = self.weekly_target_context
+        self.weekly_widget.plan_ready.connect(self.start_weekly_plan)
+        self.mode_tabs.addTab(self.weekly_widget, self.t("Study by week"))
+        self.mode_tabs.currentChanged.connect(self.update_mode_progress)
+        self.update_mode_progress()
+        progress_layout.addWidget(self.cancel_button, 0, Qt.AlignmentFlag.AlignVCenter)
         self.setCentralWidget(page)
         self.setStyleSheet("""
             QMainWindow, QWidget { background: #f3f6fc; color: #1c2d49; font-size: 13px; }
@@ -918,13 +676,18 @@ class MediaSenderWindow(QMainWindow):
             QLabel#appLogo { background: transparent; }
             QLabel#stageLabel { color: #213958; font-size: 14px; font-weight: 700; padding-bottom: 3px; }
             QLabel#selectionBadge { color: #166dd0; background: #e8f2ff; border: 1px solid #d6e8ff; border-radius: 14px; padding: 7px 12px; font-weight: 650; }
+            QTabWidget#modeTabs { border: 0; background: transparent; }
+            QTabWidget#modeTabs::pane { border: 0; background: transparent; top: 0px; }
+            QTabBar::tab { background: #ffffff; color: #65758f; border: 1px solid #dce6f4; border-radius: 9px; padding: 8px 15px; margin: 0px 6px 0px 0px; }
+            QTabBar::tab:selected { background: #e8f2ff; color: #086bcf; border-color: #a9cfff; font-weight: 650; }
+            QTabBar::tab:hover:!selected { background: #f5f9ff; }
             QFrame#surfaceCard, QFrame#progressCard { background: #ffffff; border: 1px solid #dce6f4; border-radius: 13px; }
             QPushButton { background: white; border: 1px solid #d5dfed; border-radius: 9px; padding: 8px 13px; }
             QPushButton:hover { background: #f0f6ff; border-color: #9abbea; }
             QPushButton:disabled { color: #9aa8ba; background: #edf1f7; }
             QPushButton#subtleButton { padding: 7px 12px; }
-            QPushButton#sendButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #18a2ed, stop:1 #075ee1); color: white; border: 0; border-radius: 13px; padding: 12px 16px; }
-            QLabel#sendButtonLabel { color: white; background: transparent; font-size: 14px; font-weight: 700; }
+            QPushButton#sendButton { background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #18a2ed, stop:1 #075ee1); color: white; border: 0; border-radius: 9px; padding: 0px; }
+            QLabel#sendButtonLabel { color: white; background: transparent; font-size: 13px; font-weight: 650; }
             QLabel#sendButtonIcon { background: transparent; }
             QPushButton#sendButton:hover { background: #096bd5; }
             QPushButton#sendButton:disabled { background: #9bbde2; color: #f4f8fc; }
@@ -933,26 +696,75 @@ class MediaSenderWindow(QMainWindow):
             QPushButton#cancelButton:disabled { background: #f5f6f9; color: #9aa8ba; border-color: #e0e5ed; }
             QFrame#tableFrame { background: transparent; border: 0; }
             QTableWidget { background: white; alternate-background-color: #f8faff; border: 0; gridline-color: transparent; selection-background-color: #e8f2ff; selection-color: #172b4d; outline: 0; }
-            QWidget#bottomScrollbarGutter { background: #e6edf7; }
             QTableWidget::item { padding: 8px 9px; border-bottom: 1px solid #eaf0f7; }
             QTableWidget::item:selected { background: #e8f2ff; }
             QHeaderView { background: #edf3fb; }
             QHeaderView::section { background: #edf3fb; color: #61738d; border: 0; border-bottom: 1px solid #dce6f4; padding: 9px 9px 9px 16px; font-weight: 650; }
+            QFrame#weeklyTreeFrame { background: #ffffff; border: 1px solid #dce6f4; border-radius: 13px; }
+            QTreeWidget#weeklyTree { background: #ffffff; alternate-background-color: #f8faff; border: 0; outline: 0; }
+            QTreeWidget#weeklyTree::item { border-bottom: 1px solid #eaf0f7; padding: 7px 8px; }
+            QTreeWidget#weeklyTree::item:selected { background: #e8f2ff; color: #172b4d; }
+            QTreeWidget#weeklyTree::indicator { width: 15px; height: 15px; border: 1px solid #b8c9dc; border-radius: 4px; background: #ffffff; }
+            QTreeWidget#weeklyTree::indicator:checked { border-color: #1684e8; background: #1684e8; }
+            QTreeWidget#weeklyTree::indicator:indeterminate { border-color: #8672cf; background: #8672cf; }
+            QTreeWidget#weeklyTree QScrollBar:vertical { background: #e6edf7; width: 16px; border: 0; border-radius: 8px; margin: 0; }
+            QTreeWidget#weeklyTree QScrollBar::handle:vertical { background: #1680ed; min-height: 34px; border: 0; border-radius: 4px; margin: 8px 5px; }
+            QTreeWidget#weeklyTree QScrollBar::handle:vertical:hover { background: #086ee4; }
+            QTreeWidget#weeklyTree QScrollBar::add-line:vertical, QTreeWidget#weeklyTree QScrollBar::sub-line:vertical { height: 0; border: 0; background: transparent; }
+            QTreeWidget#weeklyTree QScrollBar::add-page:vertical, QTreeWidget#weeklyTree QScrollBar::sub-page:vertical { background: transparent; }
             QProgressBar { background: #e6edf7; border: 0; border-radius: 8px; min-height: 20px; max-height: 20px; text-align: center; color: #334968; font-size: 11px; font-weight: 650; }
             QProgressBar::chunk { background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #35b7f2, stop:1 #147bea); border-radius: 8px; }
             QProgressBar#overallProgress::chunk { background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #58cad0, stop:1 #2797be); border-radius: 8px; }
-            QScrollBar:vertical { background: transparent; width: 16px; border: 0; }
+            QScrollBar:vertical { background: #eff3f9; width: 12px; border: 0; border-radius: 6px; margin: 0; }
             QScrollBar:horizontal { background: transparent; height: 16px; border: 0; }
+            QScrollBar::handle:vertical { background: #b7c7da; min-height: 34px; border: 0; border-radius: 6px; margin: 1px; }
+            QScrollBar::handle:vertical:hover { background: #91a8c3; }
+            QScrollBar::handle:horizontal { background: #b7c7da; min-width: 34px; border: 0; border-radius: 6px; margin: 1px; }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; border: 0; background: transparent; }
             QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; border: 0; background: transparent; }
             QScrollBar::add-page, QScrollBar::sub-page { background: transparent; }
         """)
+        self.setStyleSheet(self.styleSheet() + BUTTON_STYLES + COMMON_STYLES)
         self.table.verticalHeader().setDefaultSectionSize(34)
         self.table.itemChanged.connect(self.update_selection_count)
         self.restore_window_position()
         if self.migration_error:
             QTimer.singleShot(0, lambda: self.show_message("warning", self.t("Profile migration failed"),
                                                           self.migration_error))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, "table"):
+            QTimer.singleShot(0, self.fit_table_columns)
+
+    def update_mode_progress(self, *_):
+        weekly = isinstance(self.worker, WeeklyUploadThread) if self.worker is not None else self.mode_tabs.currentIndex() == 1
+        self.group_progress_label.setVisible(not weekly)
+        for index in range(self.group_progress_row.count()):
+            self.group_progress_row.itemAt(index).widget().setVisible(not weekly)
+
+    def style_send_button(self, button: QPushButton) -> None:
+        """Use the same primary action in both upload modes."""
+        button.setText("")
+        button.setObjectName("sendButton")
+        button.setFixedSize(140, 34)
+        button.setAccessibleName(self.t("Send"))
+        row = QHBoxLayout(button)
+        row.setContentsMargins(12, 0, 12, 0)
+        row.setSpacing(10)
+        row.addStretch(1)
+        icon = QLabel()
+        icon.setObjectName("sendButtonIcon")
+        icon.setPixmap(self.telegram_plane_icon().pixmap(18, 18))
+        icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        row.addWidget(icon)
+        label = QLabel(self.t("Send"))
+        label.setObjectName("sendButtonLabel")
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        row.addWidget(label)
+        row.addStretch(1)
 
     def t(self, key: str, **values) -> str:
         return tr(key, self.language, **values)
@@ -986,14 +798,13 @@ class MediaSenderWindow(QMainWindow):
         QTimer.singleShot(0, self.fit_table_columns)
 
     def fit_table_columns(self) -> None:
-        if self._table_columns_initialized:
-            return
         width = self.table.viewport().width()
-        if width <= 1000:
+        if width <= 0:
             return
         self.table.setColumnWidth(0, 84)
-        self.table.setColumnWidth(1, 342)
-        self.table.setColumnWidth(2, width - 84 - 342 - 208)
+        name_width = min(342, max(200, int(width * 0.30)))
+        self.table.setColumnWidth(1, name_width)
+        self.table.setColumnWidth(2, max(180, width - 84 - name_width - 208))
         self.table.setColumnWidth(3, 208)
         self._table_columns_initialized = True
 
@@ -1008,13 +819,13 @@ class MediaSenderWindow(QMainWindow):
         box = QMessageBox(self)
         style_light_dialog(box)
         box.setWindowTitle(title)
-        box.setIcon({"information": QMessageBox.Icon.Information,
-                     "warning": QMessageBox.Icon.Warning,
-                     "critical": QMessageBox.Icon.Critical}[kind])
-        box.setText(message)
+        box.setIconPixmap(flat_icon(kind))
+        box.setText(title)
+        box.setInformativeText(message)
         okay = CenteredTextButton(self.t("OK"), box)
         okay.setFixedHeight(44)
         box.addButton(okay, QMessageBox.ButtonRole.AcceptRole)
+        button_role(okay)
         box.setDefaultButton(okay)
         box.exec()
 
@@ -1159,21 +970,10 @@ class MediaSenderWindow(QMainWindow):
         self.update_selection_count()
 
     def format_size(self, size: int) -> str:
-        value = float(size)
-        for unit in ("B", "KB", "MB", "GB"):
-            if value < 1024 or unit == "GB":
-                return f"{value:.1f} {self.t(unit)}"
-            value /= 1024
-        return f"{value:.1f} {self.t('GB')}"
+        return format_size(size, self.language)
 
     def set_row_status(self, row: int, size: str, status: str) -> None:
-        palette = {
-            "queued": ("#edf3fb", "#526783", "#8da0b8", "Queued"),
-            "sending": ("#e8f2ff", "#176dcc", "#1680ed", "Uploading"),
-            "sent": ("#e4f6ed", "#27704f", "#299866", "Sent"),
-            "duplicate": ("#f1edff", "#684db0", "#8068cf", "Already in chat"),
-            "error": ("#fff0ef", "#ad4d4a", "#d85e58", "Error"),
-        }
+        palette = STATUS_COLORS
         background, foreground, _dot, label = palette.get(status, palette["queued"])
         cell = QWidget()
         cell.setObjectName("statusCell")
@@ -1294,6 +1094,14 @@ class MediaSenderWindow(QMainWindow):
                     )
         self.send_button.setEnabled(selected > 0 and self.current_profile() is not None
                                     and self.chat_combo.currentIndex() >= 0 and self.worker is None)
+        if hasattr(self, "weekly_widget"):
+            target_ready = (self.current_profile() is not None
+                            and 0 <= self.chat_combo.currentIndex() < len(self.chat_entities)
+                            and self.worker is None)
+            self.weekly_widget.set_target_ready(target_ready)
+            self.weekly_widget.send_button.setEnabled(
+                not self.weekly_widget.scan_blocked() and bool(self.weekly_widget.selected_plan().items)
+                and target_ready)
 
     def load_chats(self) -> None:
         if self.worker is not None:
@@ -1302,10 +1110,9 @@ class MediaSenderWindow(QMainWindow):
             self.status.setText(self.t("Add a Telegram profile before loading chats."))
             return
         self.set_busy(True, self.t("Loading available chats…"))
-        self.worker = TelegramWorker(profile=self.current_profile(), profile_store=self.profile_store, language=self.language)
+        self.worker = TelegramWorker(profile=self.current_profile(), profile_store=self.profile_store,
+                                     language=self.language, storage=self.storage)
         self.worker.input_requested.connect(self.request_worker_input)
-        self.worker.duplicate_check.connect(self.status.setText)
-        self.worker.duplicate_review.connect(self.review_duplicates)
         self.worker.chats_ready.connect(self.chats_loaded)
         self.worker.cancelled.connect(self.operation_cancelled)
         self.worker.failed.connect(self.operation_failed)
@@ -1313,6 +1120,10 @@ class MediaSenderWindow(QMainWindow):
         self.worker.start()
 
     def chats_loaded(self, chats) -> None:
+        unsupported_forums = 0
+        if isinstance(chats, dict):
+            unsupported_forums = int(chats.get("unsupported_forum_count", 0))
+            chats = chats.get("dialogs", [])
         self.chat_entities = [row[1] for row in chats]
         self.chat_combo.clear()
         for row in chats:
@@ -1320,9 +1131,13 @@ class MediaSenderWindow(QMainWindow):
             photo = row[2] if len(row) > 2 else None
             self.chat_combo.addItem(self.chat_icon(name, photo), name)
         if chats:
-            self.status.setText(self.t("Chats available for sending: {count}.", count=len(chats)))
+            message = self.t("Chats available for sending: {count}.", count=len(chats))
         else:
-            self.status.setText(self.t("No chats available with permission to send."))
+            message = self.t("No chats available with permission to send.")
+        if unsupported_forums:
+            message += " " + self.t("Forum groups with topics are not supported yet: {count}.",
+                                     count=unsupported_forums)
+        self.status.setText(message)
         self.update_selection_count()
 
     @staticmethod
@@ -1468,26 +1283,214 @@ class MediaSenderWindow(QMainWindow):
         confirmation.exec()
         if confirmation.clickedButton() is not yes_button:
             return
-        self.set_busy(True, self.t("Connecting to Telegram…"))
-        self.worker = TelegramWorker(groups=groups, target=self.chat_entities[index],
-                                     profile=self.current_profile(), profile_store=self.profile_store, language=self.language)
+        if self.folder is None:
+            return
+        from .weekly_plan import build_media_group_plan
+        profile = self.current_profile()
+        plan = build_media_group_plan(groups, self.folder, profile_id=profile["id"],
+                                      chat_title=target)
+        self._active_media_item_groups = {item.key: item.group_key for item in plan.items}
+        self._active_media_group_items = {}
+        self._active_media_item_status = {}
+        for item in plan.items:
+            self._active_media_group_items.setdefault(item.group_key, set()).add(item.key)
+        self._active_media_group_names = {}
+        for group in groups:
+            first = group.files[0]
+            group_key = f"bundle:{first.resolve().relative_to(self.folder.resolve()).as_posix()}"
+            self._active_media_group_names[group_key] = group.name
+        self.start_weekly_plan(plan)
+
+    def weekly_target_context(self):
+        index = self.chat_combo.currentIndex()
+        profile = self.current_profile()
+        if profile is None or not 0 <= index < len(self.chat_entities):
+            return {}
+        entity = self.chat_entities[index]
+        return {"profile_id": profile["id"], "chat_id": getattr(entity, "id", None),
+                "chat_title": self.chat_combo.currentText()}
+
+    def review_weekly_matches(self, conflicts, context):
+        event, answer = context
+        dialog = QDialog(self)
+        dialog.setWindowTitle(self.t("Review chat-history matches"))
+        style_light_dialog(dialog)
+        dialog.setMinimumSize(760, 440)
+        layout = QVBoxLayout(dialog)
+        title = QLabel(self.t("Some items match more than one chat-history result. Choose an action for each row."))
+        title.setObjectName("dialogTitle")
+        title.setWordWrap(True)
+        layout.addWidget(title)
+        table = QTableWidget(len(conflicts), 3)
+        table.setHorizontalHeaderLabels([self.t("File / message"), self.t("Matches"), self.t("Action")])
+        table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        combos = []
+        for row, conflict in enumerate(conflicts):
+            label = conflict["relative_path"] or conflict["name"]
+            table.setItem(row, 0, QTableWidgetItem(label))
+            table.item(row, 0).setToolTip(label)
+            table.setItem(row, 1, QTableWidgetItem(str(len(conflict["message_ids"]))))
+            choice = PopupComboBox()
+            choice.addItem(self.t("Choose an action…"), "choose")
+            choice.addItem(self.t("Send this item"), None)
+            for message_id in conflict["message_ids"]:
+                choice.addItem(self.t("Mark as found in chat · message {id}", id=message_id), int(message_id))
+            combos.append(choice)
+            table.setCellWidget(row, 2, choice)
+        table.verticalHeader().setVisible(False)
+        table.setAlternatingRowColors(True)
+        table.setShowGrid(False)
+        table.setObjectName("planTable")
+        table.setVerticalScrollBar(RoundedScrollBar(Qt.Orientation.Vertical, table))
+        frame = QFrame()
+        frame.setObjectName("planFrame")
+        frame_layout = QVBoxLayout(frame)
+        frame_layout.setContentsMargins(1, 1, 1, 1)
+        frame_layout.addWidget(table)
+        layout.addWidget(frame, 1)
+        overlay = RoundedTableOverlay(frame)
+        actions = QHBoxLayout()
+        actions.addStretch(1)
+        cancel = QPushButton(self.t("Cancel upload"))
+        okay = QPushButton(self.t("Apply choices"))
+        button_role(okay)
+        actions.addWidget(cancel)
+        actions.addWidget(okay)
+        layout.addLayout(actions)
+        cancel.clicked.connect(dialog.reject)
+
+        def accept_choices():
+            if any(combo.currentData() == "choose" for combo in combos):
+                themed_message(dialog, "warning", self.t("Review chat-history matches"),
+                                    self.t("Choose an action for every row."))
+                return
+            selected_ids = [combo.currentData() for combo in combos if combo.currentData() is not None]
+            if len(selected_ids) != len(set(selected_ids)):
+                themed_message(dialog, "warning", self.t("Review chat-history matches"),
+                                    self.t("Use each Telegram message only once."))
+                return
+            dialog.accept()
+
+        okay.clicked.connect(accept_choices)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            answer["value"] = {row["key"]: combo.currentData()
+                               for row, combo in zip(conflicts, combos)}
+        else:
+            answer["value"] = "cancel"
+        event.set()
+
+    def start_weekly_plan(self, plan):
+        profile = self.current_profile()
+        index = self.chat_combo.currentIndex()
+        if self.worker is not None:
+            return
+        if plan.account_id is not None and (profile is None or not 0 <= index < len(self.chat_entities)):
+            self.weekly_widget.status.setText(self.t(
+                "Choose the original Telegram profile and chat to continue this saved queue."))
+            return
+        if profile is None or not 0 <= index < len(self.chat_entities):
+            self.weekly_widget.status.setText(self.t("Select a Telegram profile and chat first."))
+            return
+        entity = self.chat_entities[index]
+        from dataclasses import replace
+        from telethon import utils
+        current_chat_id = utils.get_peer_id(entity)
+        if plan.account_id is not None:
+            if plan.profile_id != profile["id"] or str(plan.chat_id) != str(current_chat_id):
+                self.weekly_widget.status.setText(self.t(
+                    "Choose the original Telegram profile and chat to continue this saved queue."))
+                return
+        else:
+            plan = replace(plan, profile_id=profile["id"], chat_id=current_chat_id,
+                           chat_title=self.chat_combo.currentText())
+        self.worker = WeeklyUploadThread(plan, profile, self.profile_store, self.storage, self.language)
+        self.update_mode_progress()
+        self.worker.progress.connect(self.update_weekly_progress)
         self.worker.input_requested.connect(self.request_worker_input)
-        self.worker.duplicate_check.connect(self.status.setText)
-        self.worker.duplicate_review.connect(self.review_duplicates)
-        self.worker.progress.connect(self.status.setText)
-        self.worker.task_progress.connect(self.update_task_progress)
-        self.worker.completed.connect(self.sent)
-        self.worker.cancelled.connect(self.operation_cancelled)
+        self.worker.match_review.connect(self.review_weekly_matches)
+        self.worker.confirmation_ready.connect(self.weekly_preflight_ready)
+        self.worker.completed.connect(self.weekly_upload_completed)
+        self.worker.cancelled.connect(self.weekly_upload_cancelled)
         self.worker.failed.connect(self.operation_failed)
         self.worker.finished.connect(self.worker_finished)
+        self.worker.finished.connect(self.weekly_widget.finish_work)
+        self.weekly_widget.set_enabled(False)
+        self.set_busy(True, self.t("Connecting to Telegram…"))
         self.worker.start()
+
+    def weekly_preflight_ready(self, data):
+        accepted = self.weekly_widget.confirm_plan(data["plan"], data.get("report"))
+        if isinstance(self.worker, WeeklyUploadThread):
+            self.worker.confirm_upload(accepted)
+
+    def update_weekly_progress(self, data):
+        phase = data.get("phase", "uploading")
+        self.status.setText(self.t({
+            "preparing": "Preparing weekly upload…",
+            "reconciling": "Checking the Telegram chat…",
+            "uploading": "Uploading weekly materials…",
+            "waiting_network": "Waiting for network; will retry in {seconds}s",
+            "waiting_flood": "Telegram asked to wait {seconds} seconds before continuing.",
+            "completed": "Completed",
+            "failed": "Cannot send",
+        }.get(phase, "Uploading weekly materials…"),
+            seconds=data.get("retry_seconds", 0)))
+        self.stage_label.setText(self.status.text())
+        item = data.get("item")
+        if data.get("item_key") and data.get("status"):
+            self.weekly_widget.update_item_status(data["item_key"], data["status"])
+            group_key = getattr(self, "_active_media_item_groups", {}).get(data["item_key"])
+            if group_key:
+                self._active_media_item_status[data["item_key"]] = data["status"]
+                statuses = [self._active_media_item_status.get(key, "queued")
+                            for key in self._active_media_group_items[group_key]]
+                if statuses and all(status == "sent" for status in statuses):
+                    row_status = "sent"
+                elif any(status == "error" for status in statuses):
+                    row_status = "error"
+                elif any(status in {"sent", "skipped", "duplicate"} for status in statuses):
+                    row_status = "partial"
+                elif any(status in {"sending", "uncertain"} for status in statuses):
+                    row_status = "sending" if "sending" in statuses else "uncertain"
+                else:
+                    row_status = "queued"
+                self.set_group_status(self._active_media_group_names[group_key], row_status)
+        elif phase == "uploading" and item is not None and data.get("run_id"):
+            item_key = data.get("item_key") or item.key
+            self.weekly_widget.update_item_status(item_key, "sending")
+        if item is not None:
+            self.file_progress_label.setText(item.name or item.text or "—")
+            current = int(data.get("current_bytes", 0))
+            total = max(int(data.get("current_total_bytes", item.size)), 1)
+            self.file_progress.setValue(100 if data.get("status") == "sent"
+                                        else min(100, current * 100 // total))
+        if "confirmed_bytes" in data:
+            confirmed = int(data.get("confirmed_bytes", 0))
+            all_bytes = max(int(data.get("total_bytes", 0)), 1)
+            self.overall_progress.setValue(min(100, confirmed * 100 // all_bytes))
+        self.weekly_widget.status.setText(self.status.text())
+
+    def weekly_upload_completed(self, result):
+        self.file_progress.setValue(100)
+        self.overall_progress.setValue(100)
+        summary = self.t("Weekly upload complete: {sent} sent, {skipped} already in chat",
+                         sent=result.get("sent", 0), skipped=result.get("skipped", 0))
+        self.status.setText(summary)
+        self.show_message("information", self.t("Completed"), summary)
+
+    def weekly_upload_cancelled(self, immediate):
+        message = self.t("Upload interrupted. Its progress is saved; you can continue later.")
+        self.status.setText(message)
+        self.stage_label.setText(message)
 
     def send_confirmation_dialog(self, group_count: int, target: str, names: str,
                                  extra_warning: str = ""):
         confirmation = QMessageBox(self)
         style_light_dialog(confirmation)
         confirmation.setWindowTitle(self.t("Upload confirmation"))
-        confirmation.setIcon(QMessageBox.Icon.Question)
+        confirmation.setIconPixmap(flat_icon("question"))
         confirmation.setText(self.t(
             "Send {count} group(s) to chat “{target}”?\n\n{names}\n\n{note}",
             count=group_count, target=target, names=names,
@@ -1500,6 +1503,11 @@ class MediaSenderWindow(QMainWindow):
         # QMessageBox applies slightly different native size hints to custom and
         # standard buttons on macOS. Use the same widget type and height so both
         # controls share one horizontal baseline without changing their widths.
+        body = confirmation.text()
+        title, _, details = body.partition("\n\n")
+        confirmation.setText(title)
+        confirmation.setInformativeText(details)
+        button_role(yes_button)
         confirmation.ensurePolished()
         button_height = max(yes_button.sizeHint().height(), cancel_button.sizeHint().height())
         yes_button.setFixedHeight(button_height)
@@ -1539,23 +1547,28 @@ class MediaSenderWindow(QMainWindow):
         dialog = QDialog(self)
         dialog.setWindowTitle(self.t("Telegram profiles"))
         style_light_dialog(dialog)
-        dialog.setMinimumSize(500, 460)
+        dialog.setMinimumSize(500, 300)
         layout = QVBoxLayout(dialog)
         layout.setContentsMargins(22, 22, 22, 20)
         layout.setSpacing(12)
         heading = QLabel(self.t("Telegram profiles"))
-        heading.setStyleSheet("font-size: 18px; font-weight: 700; color: #173254;")
+        heading.setObjectName("dialogTitle")
         layout.addWidget(heading)
         note = QLabel(self.t("Profiles stored by this app"))
         note.setStyleSheet("color: #617792;")
         layout.addWidget(note)
         listing = QListWidget()
         listing.setObjectName("profileList")
+        empty = QLabel(self.t("No profiles yet. Add a Telegram profile to get started."))
+        empty.setObjectName("emptyState")
+        empty.setWordWrap(True)
+        empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(empty, 1)
         layout.addWidget(listing, 1)
         actions = QHBoxLayout()
         actions.setSpacing(10)
-        add = dialog_button(self.t("Add…"), dialog)
-        remove = dialog_button(self.t("Delete…"), dialog)
+        add = button_role(dialog_button(self.t("Add…"), dialog))
+        remove = button_role(dialog_button(self.t("Delete…"), dialog), "danger")
         close = dialog_button(self.t("Close"), dialog, default=True)
         actions.addWidget(add)
         actions.addWidget(remove)
@@ -1564,6 +1577,8 @@ class MediaSenderWindow(QMainWindow):
         layout.addLayout(actions)
 
         def refresh(selected_id: str | None = None) -> None:
+            empty.setVisible(not self.profiles)
+            listing.setVisible(bool(self.profiles))
             listing.clear()
             for row in self.profiles:
                 item = QListWidgetItem(self.profile_icon(), row["name"])
@@ -1622,17 +1637,17 @@ class MediaSenderWindow(QMainWindow):
         content = QHBoxLayout()
         content.setSpacing(18)
         icon = QLabel()
-        icon.setPixmap(self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning).pixmap(56, 56))
+        icon.setPixmap(flat_icon("warning"))
         icon.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
         content.addWidget(icon, 0, Qt.AlignmentFlag.AlignTop)
         messages = QVBoxLayout()
         messages.setSpacing(8)
         question = QLabel(self.t("Delete profile “{name}” and its local session from this app?", name=profile["name"]))
         question.setWordWrap(True)
-        question.setStyleSheet("font-size: 16px; font-weight: 700; color: #173254;")
+        question.setObjectName("dialogTitle")
         explanation = QLabel(self.t("Telegram messages, source media, and profiles in the old app remain unchanged."))
         explanation.setWordWrap(True)
-        explanation.setStyleSheet("font-size: 15px; color: #1c2d49;")
+        explanation.setObjectName("secondaryNote")
         messages.addWidget(question)
         messages.addWidget(explanation)
         content.addLayout(messages, 1)
@@ -1642,7 +1657,7 @@ class MediaSenderWindow(QMainWindow):
         actions.setSpacing(10)
         actions.addStretch(1)
         cancel = dialog_button(self.t("Cancel"), dialog, default=True)
-        delete = dialog_button(self.t("Delete"), dialog)
+        delete = button_role(dialog_button(self.t("Delete"), dialog), "danger")
         cancel.setMinimumWidth(108)
         delete.setMinimumWidth(108)
         actions.addWidget(cancel)
@@ -1662,8 +1677,12 @@ class MediaSenderWindow(QMainWindow):
         outer = QVBoxLayout(dialog)
         outer.setContentsMargins(24, 24, 24, 22)
         outer.setSpacing(16)
+        heading = QLabel(self.t("New Telegram profile"))
+        heading.setObjectName("dialogTitle")
+        outer.addWidget(heading)
         form = QFormLayout()
-        form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
         form.setVerticalSpacing(12)
         form.setHorizontalSpacing(14)
         name = QLineEdit()
@@ -1682,7 +1701,7 @@ class MediaSenderWindow(QMainWindow):
         buttons = QHBoxLayout()
         buttons.addStretch(1)
         cancel = dialog_button(self.t("Cancel"), dialog)
-        save = dialog_button(self.t("Save"), dialog, default=True)
+        save = button_role(dialog_button(self.t("Save"), dialog, default=True))
         buttons.addWidget(cancel)
         buttons.addWidget(save)
         outer.addLayout(buttons)
@@ -1709,6 +1728,9 @@ class MediaSenderWindow(QMainWindow):
         layout = QVBoxLayout(dialog)
         layout.setContentsMargins(24, 22, 24, 22)
         layout.setSpacing(14)
+        title = QLabel(self.t("Sign in to Telegram"))
+        title.setObjectName("dialogTitle")
+        layout.addWidget(title)
         label = QLabel(prompt)
         label.setWordWrap(True)
         field = QLineEdit()
@@ -1718,34 +1740,13 @@ class MediaSenderWindow(QMainWindow):
         actions = QHBoxLayout()
         actions.addStretch(1)
         cancel = dialog_button(self.t("Cancel"), dialog)
-        okay = dialog_button(self.t("OK"), dialog, default=True)
+        okay = button_role(dialog_button(self.t("OK"), dialog, default=True))
         actions.addWidget(cancel)
         actions.addWidget(okay)
         layout.addLayout(actions)
         cancel.clicked.connect(dialog.reject)
         okay.clicked.connect(dialog.accept)
         answer["value"] = field.text().strip() if dialog.exec() == QDialog.DialogCode.Accepted else ""
-        event.set()
-
-    def review_duplicates(self, duplicates, context) -> None:
-        event, answer = context
-        rows = []
-        for group in duplicates[:12]:
-            rows.append(f"• {group['name']}: {', '.join(group['files'])}")
-        if len(duplicates) > 12:
-            rows.append(self.t("• … and {count} more groups", count=len(duplicates) - 12))
-        box = QMessageBox(self)
-        style_light_dialog(box)
-        box.setWindowTitle(self.t("Review possible duplicates"))
-        box.setIcon(QMessageBox.Icon.Warning)
-        box.setText(self.t("The chat already contains files from these groups:"))
-        box.setInformativeText("\n".join(rows) + "\n\n" + self.t("Duplicate matching uses file name and size. Spaces and underscores are treated as equal. You can skip complete groups, review manually, or send them again."))
-        skip = box.addButton(self.t("Skip duplicates"), QMessageBox.ButtonRole.AcceptRole)
-        send = box.addButton(self.t("Send anyway"), QMessageBox.ButtonRole.DestructiveRole)
-        box.addButton(self.t("Cancel — I will review"), QMessageBox.ButtonRole.RejectRole)
-        box.setDefaultButton(skip)
-        box.exec()
-        answer["choice"] = "skip" if box.clickedButton() is skip else "all" if box.clickedButton() is send else "cancel"
         event.set()
 
     def update_task_progress(self, data: dict) -> None:
@@ -1763,10 +1764,6 @@ class MediaSenderWindow(QMainWindow):
         self.file_progress_label.setText(data.get("file", self.t("Current file")))
         self.file_progress.setValue(max(0, min(100, int(data.get("file_progress", 0)))))
 
-    def sent(self, summary: str) -> None:
-        self.status.setText(summary)
-        self.show_message("information", self.t("Completed"), summary)
-
     def operation_cancelled(self, message: str) -> None:
         self.status.setText(message)
         self.stage_label.setText(message)
@@ -1774,9 +1771,59 @@ class MediaSenderWindow(QMainWindow):
     def cancel_operation(self) -> None:
         if self.worker is None:
             return
-        self.worker.request_cancel()
+        if isinstance(self.worker, WeeklyUploadThread):
+            choice = self.choose_weekly_stop()
+            if choice is None:
+                return
+            self.worker.request_stop(choice)
+        else:
+            self.worker.request_cancel()
         self.cancel_button.setEnabled(False)
         self.status.setText(self.t("Stop after the current safe step…"))
+
+    def choose_weekly_stop(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle(self.t("Stop weekly upload?"))
+        style_light_dialog(dialog)
+        layout = QVBoxLayout(dialog)
+        title = QLabel(self.t("Choose when to stop the queue."))
+        title.setObjectName("dialogTitle")
+        layout.addWidget(title)
+        wait = QRadioButton(self.t("Finish the current file"))
+        wait.setChecked(True)
+        interrupt = QRadioButton(self.t("Interrupt current transfer now"))
+        layout.addWidget(wait)
+        layout.addWidget(interrupt)
+        buttons = QHBoxLayout()
+        buttons.addStretch(1)
+        resume = button_role(QPushButton(self.t("Continue upload")))
+        stop = button_role(QPushButton(self.t("Stop")), "danger")
+        buttons.addWidget(resume)
+        buttons.addWidget(stop)
+        layout.addLayout(buttons)
+        resume.clicked.connect(dialog.reject)
+        stop.clicked.connect(dialog.accept)
+        return interrupt.isChecked() if dialog.exec() == QDialog.DialogCode.Accepted else None
+
+    def closeEvent(self, event):
+        if self.worker is None:
+            event.accept()
+            return
+        event.ignore()
+        if isinstance(self.worker, WeeklyUploadThread):
+            immediate = self.choose_weekly_stop()
+            if immediate is None:
+                return
+            self.worker.request_stop(immediate)
+        else:
+            answer = themed_message(self, "question", self.t("Stop weekly upload?"),
+                                          self.t("A Telegram operation is still running. Stop and close after it finishes?"),
+                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                          QMessageBox.StandardButton.No)
+            if answer != QMessageBox.StandardButton.Yes:
+                return
+            self.worker.request_cancel()
+        self._close_when_worker_finished = True
 
     def operation_failed(self, message: str) -> None:
         self.status.setText(self.t("Cannot send"))
@@ -1784,6 +1831,7 @@ class MediaSenderWindow(QMainWindow):
 
     def set_busy(self, busy: bool, message: str) -> None:
         self.choose_folder_button.setEnabled(not busy)
+        self.refresh_folder_button.setEnabled(not busy)
         self.refresh_chats_button.setEnabled(not busy and bool(self.profiles))
         self.select_all_button.setEnabled(not busy)
         self.clear_button.setEnabled(not busy)
@@ -1803,13 +1851,28 @@ class MediaSenderWindow(QMainWindow):
 
     def worker_finished(self) -> None:
         self.worker = None
+        self.update_mode_progress()
         self.set_busy(False, self.status.text())
+        if hasattr(self, "weekly_widget"):
+            self.weekly_widget.set_enabled(True)
+            self.weekly_widget.refresh_resume_button()
         self.update_selection_count()
+        if self._close_when_worker_finished:
+            self._close_when_worker_finished = False
+            QTimer.singleShot(0, self.close)
 
 
 def run() -> int:
-    app = QApplication(sys.argv)
+    parser = argparse.ArgumentParser(add_help=True)
+    parser.add_argument("--data-dir", type=Path, help="Use an isolated application data directory")
+    args, qt_args = parser.parse_known_args(sys.argv[1:])
+    app = QApplication([sys.argv[0], *qt_args])
     app.setApplicationName("Telegram Media Sender")
-    window = MediaSenderWindow()
+    if args.data_dir:
+        isolated_storage = SenderStorage(root=args.data_dir)
+        settings_file = isolated_storage.root / "settings.ini"
+        window = MediaSenderWindow(storage=isolated_storage, settings_file=settings_file)
+    else:
+        window = MediaSenderWindow()
     window.show()
     return app.exec()

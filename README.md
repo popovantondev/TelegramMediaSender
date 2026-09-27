@@ -4,9 +4,9 @@
 
 **[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/latest)** · **[Deutsch](docs/de/README.md)** · **[Русский](docs/ru/README.md)** · **[English](docs/en/README.md)**
 
-Apple Silicon (M1 or newer) · macOS 13+ · Version 1.1.2
+Apple Silicon (M1 or newer) · macOS 13+ · Version 1.2.0
 
-**Telegram Media Sender** is a desktop app for macOS that sends ordered batches of local files to Telegram chats. A numbered bundle may contain video, audio, subtitles, or any combination of them. The app lists chats where the signed-in account can post, lets you select bundles, and shows upload progress.
+**Telegram Media Sender** is a desktop app for macOS that sends ordered local media groups or weekly study materials to Telegram chats. The weekly mode scans dated folders, previews a sequential message plan, and keeps a local journal so a stopped or interrupted queue can continue later.
 
 The interface selects German, Russian, or English from the macOS language on first launch. You can choose another language in the window; restart the app to apply it. The window position is remembered.
 
@@ -25,16 +25,20 @@ The interface selects German, Russian, or English from the macOS language on fir
 
 ## Downloads
 
-Download the Apple Silicon build for macOS 13 or later from [Releases](https://github.com/popovantondev/TelegramMediaSender/releases). The current version is **1.1.2**. Unzip the download and move **Telegram Media Sender.app** to Applications.
+Download the Apple Silicon build for macOS 13 or later from [Releases](https://github.com/popovantondev/TelegramMediaSender/releases). The current version is **1.2.0**. Unzip the download and move **Telegram Media Sender.app** to Applications.
 
-The build is not notarized by Apple. Follow the first-launch instructions in the [user guide](docs/en/README.md). For local development, the packaged app is at `dist/TelegramMediaSender-1.1.2-macOS-arm64/Telegram Media Sender.app`.
+The build is not notarized by Apple. Follow the first-launch instructions in the [user guide](docs/en/README.md). For local development, the packaged app is at `dist/TelegramMediaSender-1.2.0-macOS-arm64/Telegram Media Sender.app` unless `OUTPUT_DIR` is set.
+
+## Current local preview
+
+The latest local preview is `previews/build-1.2.0-functional-fix/TelegramMediaSender-1.2.0-macOS-arm64/Telegram Media Sender.app`. It includes the approved unified design and the functional fixes validated in the local audit. Both tabs retain their tables, and the app bundle passes signature verification. The preview has not been published. The previous design is preserved in `backups/design-before-unification-2026-09-27/source-and-design.zip`. See [the design audit](docs/ru/design-audit-2026-09-27.md).
 
 ## Quick start
 
 1. Install a release build and open **Telegram Media Sender**.
 2. Create a Telegram API application and add its API ID and API Hash to a profile. Follow [Telegram connection setup](docs/en/telegram-setup.md).
 3. Enter the login code Telegram sends to your account, and your two-step verification password if prompted.
-4. Choose a folder containing numbered files, load your chats, select the destination and groups, and send.
+4. Choose **Media groups** for numbered bundles or **Study by week** for dated study folders. Review the destination and upload plan before sending.
 
 The app does not contain API keys or a Telegram account. Profile data and Telegram sessions are stored in the app's own folder under `~/Library/Application Support/TelegramMediaSender`. The profile selector is empty until a named profile exists. On first launch, explicitly named compatible profiles and their SQLite sessions from the earlier Telegram Archive sender are copied into this folder; the earlier app's data is preserved. The old app's unnamed default account is not added automatically. Profiles can be removed with **Profiles… → Delete…**. A session file is sensitive: anyone who obtains it may be able to access the Telegram account. Do not share it or upload it to this repository.
 
@@ -50,6 +54,8 @@ Give related files the same leading number to place them in one bundle. Bundles 
 ```
 
 Supported media: MP4, M4V, MOV, MKV, WebM, AVI, M4A, MP3, AAC, OGG, WAV, and FLAC. A bundle can also contain only media or only `.srt` subtitles. Subtitle names may differ slightly; files with the same leading number are grouped together. All matching subtitles are included, and the app warns when several files match one language. Before uploading, the app compares file names and sizes against the selected chat history and asks what to do when it finds a possible match.
+
+The weekly mode recognizes `Неделя <number> …` folders and valid `YYYY-MM-DD` day folders. Files directly inside a week are sent as week materials. Day files are ordered as audio/video, every `.srt`, `03_Скриншоты.zip`, `04_Дополнительные_материалы.zip`, then other files. See the [weekly upload guide](docs/en/weekly-uploads.md).
 
 ## Technology
 
@@ -69,6 +75,12 @@ bash scripts/build_macos.sh
 ```
 
 The app bundle is written to `dist/`. See the developer notes in [English](docs/en/development.md), [Deutsch](docs/de/development.md), or [Русский](docs/ru/development.md).
+
+For a separate preview build, use `OUTPUT_DIR=previews/build-1.2.0 bash scripts/build_macos.sh`. The script refuses to overwrite a package folder that already exists. To isolate profiles, sessions, journal, and settings, launch the app executable with `--data-dir "$HOME/Documents/TelegramMediaSender-test-data"`.
+
+## Functional readiness
+
+The 2026-09-27 local audit now passes all 79 tests and all 12 additional offline acceptance checks, covering retries, visible feedback, progress/status updates and scan recovery. Real Telegram delivery has not been verified. See the [functional audit and next steps](docs/ru/functional-audit-2026-09-27.md). The approved design is unchanged.
 
 ## Documentation
 

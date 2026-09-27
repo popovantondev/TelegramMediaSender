@@ -4,6 +4,13 @@ from __future__ import annotations
 from typing import Any
 
 
+def is_forum_chat(entity: Any) -> bool:
+    """Forum groups are not supported until the user can choose a topic."""
+    from telethon.tl.types import Channel
+
+    return isinstance(entity, Channel) and bool(entity.megagroup and getattr(entity, "forum", False))
+
+
 def can_publish(entity: Any) -> bool:
     """Check real Telethon chat types, including default group bans."""
     from telethon.tl.types import Channel, Chat
@@ -16,6 +23,8 @@ def can_publish(entity: Any) -> bool:
 
     if isinstance(entity, Channel):
         if entity.left or entity.min:
+            return False
+        if entity.megagroup and getattr(entity, "forum", False):
             return False
         if entity.broadcast:
             return bool(entity.creator or (entity.admin_rights and entity.admin_rights.post_messages))

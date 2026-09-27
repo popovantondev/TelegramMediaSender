@@ -1,12 +1,13 @@
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from types import SimpleNamespace
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtCore import QBuffer, QIODevice, QSize, Qt, QPoint, QPointF, QTimer
+from PySide6.QtCore import QBuffer, QIODevice, QSize, Qt, QPoint, QPointF, QTimer, QSettings
 from PySide6.QtGui import QColor, QPainter, QPixmap, QWheelEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QLabel, QFrame, QStyle, QStyleOptionSlider, QHeaderView, QPushButton, QLineEdit, QListWidget
@@ -34,11 +35,111 @@ class MediaSenderTests(unittest.TestCase):
         return MediaSenderWindow(language=language, persist_state=False,
                                  storage=SenderStorage(root=Path(self.data_folder.name)))
 
+    def test_shared_design_localizes_counts_and_sizes(self):
+        from telegram_media_sender.ui_design import counted, format_size
+        for number, expected in [(1, "1 день"), (2, "2 дня"), (11, "11 дней"), (21, "21 день")]:
+            self.assertEqual(counted(number, "day", "ru"), expected)
+        self.assertEqual(counted(1, "file", "de"), "1 Datei")
+        self.assertEqual(format_size(1536, "ru"), "1,5 КБ")
+        self.assertEqual(format_size(1536, "en"), "1.5 KB")
+
+    def test_shared_design_progress_and_busy_state(self):
+        window = self.make_window()
+        self.assertFalse(window.group_progress.isHidden())
+        window.mode_tabs.setCurrentIndex(1)
+        self.assertTrue(window.group_progress.isHidden())
+        window.mode_tabs.setCurrentIndex(0)
+        self.assertFalse(window.group_progress.isHidden())
+        window.set_busy(True, "busy")
+        self.assertFalse(window.refresh_folder_button.isEnabled())
+        window.set_busy(False, "ready")
+        self.assertTrue(window.refresh_folder_button.isEnabled())
+        self.assertEqual(window.send_button.size(), window.weekly_widget.send_button.size())
+        window.close()
+
     def test_cancel_button_requests_safe_worker_cancel(self):
         worker = TelegramWorker()
         worker.request_cancel()
         with self.assertRaises(UploadCancelled):
             worker.check_cancel()
+
+    def test_explicit_data_directory_uses_separate_profiles_and_ini_settings(self):
+        root = Path(self.data_folder.name) / "preview-data"
+        settings_file = root / "settings.ini"
+        root.mkdir()
+        settings = QSettings(str(settings_file), QSettings.Format.IniFormat)
+        settings.setValue("weekly/root", str(root / "not-a-real-folder"))
+        window = MediaSenderWindow(language="ru", persist_state=False,
+                                   storage=SenderStorage(root=root), settings_file=settings_file)
+        try:
+            self.assertEqual(Path(window.settings.fileName()), settings_file)
+            self.assertEqual(window.profile_store.root, root / "MediaGroupSender")
+            self.assertIsNone(window.storage.legacy_archive_root)
+            self.assertFalse(window.profile_store.path.exists())
+            if window.weekly_widget._scan_thread:
+                window.weekly_widget._scan_thread.wait(2000)
+                self.app.processEvents()
+        finally:
+            window.close()
+
+    def test_legacy_and_weekly_workers_share_one_telegram_operation_lock(self):
+        root = Path(self.data_folder.name) / "isolated"
+        first = SenderStorage(root=root)
+        second = SenderStorage(root=root)
+        with first.telegram_operation_lock():
+            with self.assertRaisesRegex(RuntimeError, "Another Telegram operation"):
+                with second.telegram_operation_lock():
+                    pass
+
+    def test_weekly_controls_are_reenabled_after_worker_finishes(self):
+        window = self.make_window()
+        window.worker = object()
+        window.weekly_widget.set_enabled(False)
+        window.worker_finished()
+        self.assertIsNone(window.worker)
+        self.assertTrue(window.weekly_widget.choose_button.isEnabled())
+        self.assertTrue(window.weekly_widget.refresh_button.isEnabled())
+        window.close()
+
+    def test_weekly_progress_finishes_for_empty_file_and_complete_queue(self):
+        window = self.make_window()
+        try:
+            item = SimpleNamespace(name="empty.txt", text="", size=0, key="file:empty")
+            window.update_weekly_progress({"phase": "uploading", "item": item,
+                                           "item_key": item.key, "status": "sent",
+                                           "current_bytes": 0, "current_total_bytes": 0,
+                                           "confirmed_bytes": 0, "total_bytes": 0})
+            self.assertEqual(window.file_progress.value(), 100)
+            self.assertEqual(window.overall_progress.value(), 0)
+            with patch.object(window, "show_message"):
+                window.weekly_upload_completed({"sent": 1, "skipped": 0})
+            self.assertEqual(window.file_progress.value(), 100)
+            self.assertEqual(window.overall_progress.value(), 100)
+        finally:
+            window.close()
+
+    def test_mode_actions_stay_above_the_progress_panel(self):
+        window = self.make_window()
+        try:
+            if window.weekly_widget._scan_thread:
+                window.weekly_widget._scan_thread.wait(2000)
+                self.app.processEvents()
+            window.show()
+            self.app.processEvents()
+            media_button_bottom = window.send_button.mapTo(window, QPoint(0, window.send_button.height())).y()
+            progress_top = window.progress_card.mapTo(window, QPoint(0, 0)).y()
+            self.assertLess(media_button_bottom, progress_top)
+            self.assertFalse(window.send_button.isHidden())
+            self.assertFalse(window.weekly_widget.send_button.isVisible())
+            window.mode_tabs.setCurrentIndex(1)
+            self.app.processEvents()
+            self.assertFalse(window.send_button.isVisible())
+            self.assertTrue(window.weekly_widget.send_button.isVisible())
+            weekly_button_bottom = window.weekly_widget.send_button.mapTo(
+                window, QPoint(0, window.weekly_widget.send_button.height())).y()
+            self.assertLess(weekly_button_bottom, progress_top)
+        finally:
+            window.close()
 
     def test_external_error_messages_are_localized(self):
         invalid_code = type("PhoneCodeInvalidError", (Exception,), {})
@@ -216,9 +317,10 @@ class MediaSenderTests(unittest.TestCase):
 
             self.assertEqual(window.table.verticalScrollBarPolicy(), Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             self.assertEqual(window.table.horizontalScrollBarPolicy(), Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-            self.assertEqual(window.minimumSize(), QSize(1280, 864))
-            self.assertEqual(window.maximumSize(), QSize(1280, 864))
-            self.assertEqual(window.bottom_scrollbar_gutter.height(), 12)
+            self.assertEqual(window.minimumSize(), QSize(980, 700))
+            self.assertGreater(window.maximumWidth(), 1280)
+            self.assertEqual(window.weekly_widget.tree.horizontalScrollBarPolicy(),
+                             Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             self.assertIsInstance(window.table.horizontalHeader(), QHeaderView)
             self.assertIsInstance(window.table_overlay, RoundedTableOverlay)
             self.assertEqual(window.table_overlay.radius, 13.0)
@@ -232,7 +334,7 @@ class MediaSenderTests(unittest.TestCase):
             self.assertEqual(window.table.cellWidget(0, 3).findChild(QLabel, "rowStatus").text(), "В очереди")
             status_cell = window.table.cellWidget(0, 3)
             self.assertIsNone(status_cell.findChild(QFrame, "statusPanel"))
-            self.assertEqual(status_cell.findChild(QLabel, "sizeValue").text(), "26.0 Б")
+            self.assertEqual(status_cell.findChild(QLabel, "sizeValue").text(), "26,0 Б")
             self.assertIn("border-radius: 9px",
                           status_cell.findChild(QLabel, "rowStatus").styleSheet())
             self.assertEqual(window.cancel_button.size().width(), 104)
@@ -263,7 +365,7 @@ class MediaSenderTests(unittest.TestCase):
             self.assertGreaterEqual(text_label.geometry().left() - icon_label.geometry().right() - 1, 10)
             window.close()
 
-    def test_send_confirmation_and_completion_summary_are_russian_and_multiline(self):
+    def test_send_confirmation_buttons_are_russian_and_aligned(self):
         window = self.make_window()
         box, yes = window.send_confirmation_dialog(2, "Тестовый чат", "• Комплект")
         self.assertEqual({button.text() for button in box.buttons()}, {"Да", "Отменить"})
@@ -279,9 +381,6 @@ class MediaSenderTests(unittest.TestCase):
         self.assertEqual(cancel.geometry().top(), yes.geometry().top())
         self.assertEqual(cancel.geometry().height(), yes.geometry().height())
         self.assertEqual(box.defaultButton().text(), "Отменить")
-        self.assertEqual(TelegramWorker.completion_summary(2, 0, "ru"),
-            "Отправлено комплектов: 2\nПропущено повторов: 0\n"
-            "Медиа отправлено отдельно от группового альбома субтитров.")
         box.close()
         window.close()
 
@@ -347,9 +446,6 @@ class MediaSenderTests(unittest.TestCase):
                 (SimpleNamespace(set=lambda: None), {})))
             check_modal(lambda: window.show_message("information", tr("Language saved", language),
                                                      tr("Restart the app to apply the selected language.", language)))
-            check_modal(lambda: window.review_duplicates(
-                [{"name": "001 Temporary", "files": ["001 Temporary.mp4"]}],
-                (SimpleNamespace(set=lambda: None), {})))
             confirmation, _yes = window.send_confirmation_dialog(1, "Temporary", "• 001 Temporary")
             confirmation.show()
             self.app.processEvents()

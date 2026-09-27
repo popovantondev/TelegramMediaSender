@@ -12,6 +12,14 @@ Version **1.1.2**, downloaded from GitHub Releases:
 
 This is a local startup check. Installation on another Mac, browser quarantine/Gatekeeper behavior and interactive operation of the downloaded app on that Mac have **not** been verified. No files were sent to Telegram.
 
+## Current local candidate — 2026-09-27
+
+Candidate-specific metadata and the ZIP SHA-256 are recorded in the local `candidate-report.json` beside each preview build. The report identifies the candidate, source commit, source-tree SHA-256, automated and manual checks, archive checksum and remaining acceptance gates.
+
+The latest local candidate is an unsigned-for-distribution preview (ad hoc signature, no Developer ID or notarization), built for arm64 with a macOS 13.0 bundle minimum. The source tree is dirty, so it is not a release build. Automated tests and offline acceptance pass; a 5,000-file idle soak is running against the extracted candidate. StudyArchivePrep v1 was exercised using output from its actual exporter.
+
+Real Telegram sends to a confirmed private group and channel, interactive UI verification of the latest candidate, second-Mac installation/update and a clean committed-source build remain outstanding. No candidate has been uploaded to Releases.
+
 ## English: check on another Mac
 
 1. Use an Apple Silicon Mac running macOS 13 or newer. Download the ZIP through a browser from [Releases](https://github.com/popovantondev/TelegramMediaSender/releases/latest).

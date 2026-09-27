@@ -1,6 +1,12 @@
 from PyInstaller.utils.hooks import collect_all
+import os
+
+app_version = os.environ.get("APP_VERSION", "1.2.0")
 
 datas = [("src/telegram_media_sender/assets/app-icon.svg", "assets")]
+build_info_file = os.environ.get("TMS_BUILD_INFO_FILE")
+if build_info_file:
+    datas.append((build_info_file, "."))
 binaries = []
 hiddenimports = []
 package_datas, package_binaries, package_hidden = collect_all("telethon")
@@ -53,8 +59,8 @@ app = BUNDLE(
     icon="build-assets/TelegramMediaSender.icns",
     bundle_identifier="com.telegrammediasender.app",
     info_plist={
-        "CFBundleShortVersionString": "1.1.2",
-        "CFBundleVersion": "1.1.2",
+        "CFBundleShortVersionString": app_version,
+        "CFBundleVersion": app_version,
         "LSMinimumSystemVersion": "13.0",
         "NSHighResolutionCapable": True,
     },

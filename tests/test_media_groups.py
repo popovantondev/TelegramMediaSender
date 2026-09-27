@@ -1,14 +1,9 @@
-import asyncio
-import sys
 import tempfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
-from unittest.mock import patch
 
-from telegram_media_sender.gui import TelegramWorker
-from telegram_media_sender.media_groups import attachment_name_key, find_group_duplicates, scan_folder
-from telegram_media_sender.profiles import SenderProfileStore
+from telegram_media_sender.media_groups import attachment_name_key, scan_folder
+from telegram_media_sender.weekly_plan import ItemKind, UploadMode, build_media_group_plan
 
 
 class MediaGroupTests(unittest.TestCase):
@@ -63,47 +58,28 @@ class MediaGroupTests(unittest.TestCase):
         self.assertEqual(groups[2].media, [])
         self.assertEqual(issues, [])
 
-    def test_worker_sends_mixed_and_subtitle_only_bundles_in_order_without_network(self):
+    def test_media_groups_convert_to_shared_plan_with_stable_album_units(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            for name in ("1 Видео.mp4", "1 Аудио.mp3", "2 Титры.ru.srt", "2 Титры.de.srt"):
-                (root / name).write_bytes(b"sample")
-            groups, _issues = scan_folder(root)
-            store = SenderProfileStore(root / "data")
-            profile = store.add("Fake", "+490000", "123", "fake-hash")
-            sent = []
+            media = root / "001 Лекция.mp4"
+            media.write_bytes(b"video")
+            subtitles = []
+            for number in range(12):
+                path = root / f"001 Лекция {number:02}.srt"
+                path.write_bytes(b"subtitle")
+                subtitles.append(path)
+            from telegram_media_sender.media_groups import Group
+            group = Group("001 Лекция", media=[media], russian=subtitles[:6], german=subtitles[6:])
+            plan = build_media_group_plan([group], root)
 
-            class FakeTelegramClient:
-                def __init__(self, *_args):
-                    pass
-
-                async def connect(self):
-                    pass
-
-                async def is_user_authorized(self):
-                    return True
-
-                async def iter_messages(self, *_args, **_kwargs):
-                    if False:
-                        yield None
-
-                async def send_file(self, _target, files, **_kwargs):
-                    sent.append([Path(item).name for item in files] if isinstance(files, list)
-                                else [Path(files).name])
-
-                async def disconnect(self):
-                    pass
-
-            worker = TelegramWorker(groups=groups, target="fake", profile=profile,
-                                    profile_store=store, language="ru")
-            with patch.dict(sys.modules, {"telethon": SimpleNamespace(TelegramClient=FakeTelegramClient)}), \
-                    patch("telegram_media_sender.gui.SenderStorage", return_value=SimpleNamespace(root=root / "data")):
-                asyncio.run(worker._work())
-
-        self.assertEqual(sent, [
-            ["1 Видео.mp4"], ["1 Аудио.mp3"],
-            ["2 Титры.ru.srt", "2 Титры.de.srt"],
-        ])
+        self.assertEqual(plan.mode, UploadMode.MEDIA_GROUPS)
+        self.assertEqual([item.name for item in plan.items],
+                         ["001 Лекция.mp4", *[path.name for path in subtitles]])
+        self.assertEqual(len({item.group_key for item in plan.items}), 1)
+        self.assertNotEqual(plan.items[0].operation_key, plan.items[1].operation_key)
+        self.assertEqual(len({item.operation_key for item in plan.items[1:]}), 2)
+        self.assertEqual(sum(item.kind is ItemKind.FILE for item in plan.items), 13)
+        self.assertEqual([item.position for item in plan.items], list(range(1, 14)))
 
     def test_partial_names_without_number_can_match(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -138,25 +114,6 @@ class MediaGroupTests(unittest.TestCase):
         local_name = "0002 Щитовидная железа и лечебные грибы.ru.mp4"
         telegram_name = "0002_Щитовидная_железа_и_лечебные_грибы_ru.mp4"
         self.assertEqual(attachment_name_key(local_name), attachment_name_key(telegram_name))
-
-    def test_one_matching_attachment_marks_whole_bundle_as_duplicate(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            title = "0002 Щитовидная железа"
-            video = root / f"{title}.ru.mp4"
-            video.write_bytes(b"the existing video")
-            (root / f"{title}.ru.srt").write_text("new Russian subtitles")
-            (root / f"{title}.srt").write_text("new German subtitles")
-            groups, issues = scan_folder(root)
-            safe_name = "0002_Щитовидная_железа_ru.mp4"
-            existing = {(attachment_name_key(safe_name), video.stat().st_size)}
-
-            duplicates = find_group_duplicates(groups, existing)
-
-        self.assertEqual(issues, [])
-        self.assertEqual(len(duplicates), 1)
-        self.assertEqual(duplicates[0]["name"], title)
-        self.assertEqual(duplicates[0]["files"], [video.name])
 
     def test_duplicate_key_keeps_extension_and_language_tokens(self):
         self.assertNotEqual(

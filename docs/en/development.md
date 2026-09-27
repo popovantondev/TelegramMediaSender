@@ -16,4 +16,4 @@ python -m pip install -e .
 PYTHONPATH=src QT_QPA_PLATFORM=offscreen python -m unittest discover -s tests -v
 ```
 
-Build with `bash scripts/build_macos.sh`. Inspect the `.app` before publishing; never include profiles, Telegram session databases, or local configuration in a release archive.
+Build with `bash scripts/build_macos.sh`. Use `OUTPUT_DIR=previews/build-1.2.0 bash scripts/build_macos.sh` for an isolated preview; the script refuses to overwrite an existing package folder. Launch it with `--data-dir` pointing to a separate directory. Inspect the `.app` before publishing; never include profiles, Telegram session databases, upload journals, or local settings in an archive.
