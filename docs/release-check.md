@@ -14,11 +14,13 @@ This is a local startup check. Installation on another Mac, browser quarantine/G
 
 ## Current local candidate — 2026-09-27
 
-Candidate-specific metadata and the ZIP SHA-256 are recorded in the local `candidate-report.json` beside each preview build. The report identifies the candidate, source commit, source-tree SHA-256, automated and manual checks, archive checksum and remaining acceptance gates.
+Candidate-specific metadata and the ZIP SHA-256 are recorded in the local `candidate-report.json` beside each preview build.
 
-The latest local candidate is an unsigned-for-distribution preview (ad hoc signature, no Developer ID or notarization), built for arm64 with a macOS 13.0 bundle minimum. The source tree is dirty, so it is not a release build. Automated tests and offline acceptance pass; a 5,000-file idle soak is running against the extracted candidate. StudyArchivePrep v1 was exercised using output from its actual exporter.
+The latest candidate is **rc13-2026-09-27**, built from clean commit `4f66e0ddf3cef5d49101d983872d3e2dd70118bb`. Its arm64 ZIP is `previews/release-candidate-1.2.0-rc13-2026-09-27/TelegramMediaSender-1.2.0-macOS-arm64.zip`, SHA-256 `32f0855c9f75919f0b9a473bd8a82415aacdfae196bc38f40c9c2349d5bec031`. The bundle minimum is macOS 13.0. The app has an ad hoc signature only; it has no Developer ID signature or Apple notarization.
 
-Real Telegram sends to a confirmed private group and channel, interactive UI verification of the latest candidate, second-Mac installation/update and a clean committed-source build remain outstanding. No candidate has been uploaded to Releases.
+Recorded local checks for rc13: 125/125 automated tests, 12/12 offline readiness checks, ZIP integrity, strict code-signature verification, and the packaged 5,000-file scan. The extracted app completed a two-hour idle soak with 25 five-minute samples. RSS peaked during startup at 132,320 KiB; after startup it remained between 10 and 45 MiB, ending at 11,728 KiB. CPU was idle and the open-descriptor count remained 53. StudyArchivePrep v1 was exercised with actual exporter output. Both tabs and their tables were visually inspected in the packaged app. GitHub Actions passed for the source commit: [run 36304704584](https://github.com/popovantondev/TelegramMediaSender/actions/runs/36304704584).
+
+The published GitHub release remains **1.1.2**. The 1.2.0 candidate has not been uploaded. Live Telegram acceptance in a specified private group and channel, installation/update on a second physical Mac, and a final clean release build remain outstanding. Publication still requires the owner's explicit release command.
 
 ## English: check on another Mac
 

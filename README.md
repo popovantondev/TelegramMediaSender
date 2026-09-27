@@ -4,7 +4,7 @@
 
 **[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/latest)** · **[Deutsch](docs/de/README.md)** · **[Русский](docs/ru/README.md)** · **[English](docs/en/README.md)**
 
-Apple Silicon (M1 or newer) · macOS 13+ · Version 1.2.0
+Apple Silicon (M1 or newer) · macOS 13+ · Latest published version: 1.1.2
 
 **Telegram Media Sender** is a desktop app for macOS that sends ordered local media groups or weekly study materials to Telegram chats. The weekly mode scans dated folders, previews a sequential message plan, and keeps a local journal so a stopped or interrupted queue can continue later.
 
@@ -25,13 +25,13 @@ The interface selects German, Russian, or English from the macOS language on fir
 
 ## Downloads
 
-Download the Apple Silicon build for macOS 13 or later from [Releases](https://github.com/popovantondev/TelegramMediaSender/releases). The current version is **1.2.0**. Unzip the download and move **Telegram Media Sender.app** to Applications.
+Download the latest published Apple Silicon build for macOS 13 or later from [Releases](https://github.com/popovantondev/TelegramMediaSender/releases). The latest published version is **1.1.2**; version **1.2.0** is still undergoing acceptance checks and is not available from Releases yet. Unzip the download and move **Telegram Media Sender.app** to Applications.
 
 The build is not notarized by Apple. Follow the first-launch instructions in the [user guide](docs/en/README.md). For local development, the packaged app is at `dist/TelegramMediaSender-1.2.0-macOS-arm64/Telegram Media Sender.app` unless `OUTPUT_DIR` is set.
 
 ## Current local preview
 
-The latest local preview is `previews/build-1.2.0-functional-fix/TelegramMediaSender-1.2.0-macOS-arm64/Telegram Media Sender.app`. It includes the approved unified design and the functional fixes validated in the local audit. Both tabs retain their tables, and the app bundle passes signature verification. The preview has not been published. The previous design is preserved in `backups/design-before-unification-2026-09-27/source-and-design.zip`. See [the design audit](docs/ru/design-audit-2026-09-27.md).
+The latest local preview is `previews/release-candidate-1.2.0-rc13-2026-09-27/TelegramMediaSender-1.2.0-macOS-arm64/Telegram Media Sender.app`, built from commit `4f66e0ddf3cef5d49101d983872d3e2dd70118bb`. Its ZIP checksum and checks are in the adjacent `candidate-report.json`. It is a preview, not a published release. The previous design is preserved in `backups/design-before-unification-2026-09-27/source-and-design.zip`. See [the design audit](docs/ru/design-audit-2026-09-27.md) and [the release check](docs/release-check.md).
 
 ## Quick start
 
