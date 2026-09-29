@@ -27,7 +27,7 @@ The interface selects German, Russian, or English from the macOS language on fir
 
 Download the Apple Silicon build for macOS 13 or later from [Releases](https://github.com/popovantondev/TelegramMediaSender/releases). The current version is **1.1.2**. Unzip the download and move **Telegram Media Sender.app** to Applications.
 
-The build is not notarized by Apple. Follow the first-launch instructions in the [user guide](docs/en/README.md). For local development, the packaged app is at `dist/TelegramMediaSender-1.1.2-macOS-arm64/Telegram Media Sender.app`.
+The build is not notarized by Apple. Follow the first-launch instructions in the [user guide](docs/en/README.md).
 
 ## Quick start
 
@@ -59,6 +59,8 @@ Supported media: MP4, M4V, MOV, MKV, WebM, AVI, M4A, MP3, AAC, OGG, WAV, and FLA
 - PyInstaller for standalone macOS packaging
 
 ## Build from source
+
+The packaged development app is at `dist/TelegramMediaSender-1.1.2-macOS-arm64/Telegram Media Sender.app`.
 
 On macOS with Xcode Command Line Tools and Python 3.12 installed:
 
