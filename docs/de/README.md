@@ -1,5 +1,7 @@
 # Benutzerhandbuch
 
+[Benutzerhandbuch](https://popovantondev.github.io/TelegramMediaSender/Guide-de.html)
+
 **[Für macOS herunterladen](https://github.com/popovantondev/TelegramMediaSender/releases/latest)** · [Deutsch](../de/README.md) · [Русский](../ru/README.md) · [English](../en/README.md)
 
 ![Telegram Media Sender](../images/app-de.png)

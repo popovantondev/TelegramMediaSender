@@ -1,5 +1,7 @@
 # Telegram Media Sender
 
+[User guide](https://popovantondev.github.io/TelegramMediaSender/Guide-en.html)
+
 <img src="src/telegram_media_sender/assets/app-icon.svg" width="88" alt="Telegram Media Sender icon">
 
 **[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/latest)** · **[Deutsch](docs/de/README.md)** · **[Русский](docs/ru/README.md)** · **[English](docs/en/README.md)**
