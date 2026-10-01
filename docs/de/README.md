@@ -1,8 +1,24 @@
 # Benutzerhandbuch
 
-[Benutzerhandbuch](https://popovantondev.github.io/TelegramMediaSender/Guide-de.html)
+<!-- public-release:start -->
+Sendet nummerierte Pakete aus Video, Audio und Untertiteln in der gewählten Reihenfolge an Telegram.
 
-**[Für macOS herunterladen](https://github.com/popovantondev/TelegramMediaSender/releases/latest)** · [Deutsch](../de/README.md) · [Русский](../ru/README.md) · [English](../en/README.md)
+**macOS 13+ · Apple Silicon · Release 1.1.2**
+
+**[Herunterladen](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · **[Anleitung](https://popovantondev.github.io/TelegramMediaSender/Guide-de.html)** · **[Fehler melden](https://github.com/popovantondev/TelegramMediaSender/issues/new/choose)**
+
+**Voraussetzungen und Grenzen:** Eigenes Telegram-Konto, API ID und API Hash erforderlich; keine Apple-Notarisierung.
+
+**Erste Schritte:** ZIP entpacken, Telegram Media Sender.app nach Applications verschieben und die Verbindung nach Anleitung einrichten.
+
+**App-Dateien:**
+
+- [`TelegramMediaSender-1.1.2-macOS-arm64.zip`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/TelegramMediaSender-1.1.2-macOS-arm64.zip)
+
+**Prüfsummen:** [`SHA256SUMS.txt`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt)
+<!-- public-release:end -->
+
+**[Für macOS herunterladen](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · [Deutsch](../de/README.md) · [Русский](../ru/README.md) · [English](../en/README.md)
 
 ![Telegram Media Sender](../images/app-de.png)
 

@@ -1,0 +1,69 @@
+{
+  "name": "Telegram Media Sender",
+  "version": "1.1.2",
+  "platform": "macOS 13+ · Apple Silicon",
+  "tag": "v1.1.2",
+  "description": {
+    "ru": "Отправляет пронумерованные наборы видео, аудио и субтитров в Telegram в выбранном порядке.",
+    "de": "Sendet nummerierte Pakete aus Video, Audio und Untertiteln in der gewählten Reihenfolge an Telegram.",
+    "en": "Send numbered bundles of video, audio and subtitles to Telegram in your chosen order."
+  },
+  "requirements": {
+    "ru": "Нужны собственный аккаунт Telegram, API ID и API Hash; приложение не нотарифицировано Apple.",
+    "de": "Eigenes Telegram-Konto, API ID und API Hash erforderlich; keine Apple-Notarisierung.",
+    "en": "Requires your own Telegram account, API ID and API Hash; not notarized by Apple."
+  },
+  "start": {
+    "ru": "Распакуйте архив, перенесите Telegram Media Sender.app в Applications и настройте подключение по руководству.",
+    "de": "ZIP entpacken, Telegram Media Sender.app nach Applications verschieben und die Verbindung nach Anleitung einrichten.",
+    "en": "Extract the ZIP, move Telegram Media Sender.app to Applications and follow the guide to connect Telegram."
+  },
+  "schema_version": 1,
+  "repo": "TelegramMediaSender",
+  "source_url": "https://github.com/popovantondev/TelegramMediaSender",
+  "readmes": {
+    "en": [
+      "README.md",
+      "docs/en/README.md"
+    ],
+    "de": [
+      "docs/de/README.md"
+    ],
+    "ru": [
+      "docs/ru/README.md"
+    ]
+  },
+  "guides": {
+    "ru": "Guide-ru.html",
+    "de": "Guide-de.html",
+    "en": "Guide-en.html"
+  },
+  "help_url": "https://popovantondev.github.io/TelegramMediaSender/Guide-{lang}.html",
+  "feedback_url": "https://github.com/popovantondev/TelegramMediaSender/issues/new/choose",
+  "status": "release",
+  "release_url": "https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2",
+  "assets": [
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 108,
+      "url": "https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt"
+    },
+    {
+      "name": "TelegramMediaSender-1.1.2-macOS-arm64.zip",
+      "size": 42963589,
+      "url": "https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/TelegramMediaSender-1.1.2-macOS-arm64.zip"
+    }
+  ],
+  "downloads": [
+    "TelegramMediaSender-1.1.2-macOS-arm64.zip"
+  ],
+  "checksums": [
+    "SHA256SUMS.txt"
+  ],
+  "version_files": [
+    {
+      "path": "src/telegram_media_sender/__init__.py",
+      "pattern": "__version__\\s*=\\s*\"([^\"]+)\""
+    }
+  ]
+}

@@ -1,10 +1,26 @@
 # Telegram Media Sender
 
-[User guide](https://popovantondev.github.io/TelegramMediaSender/Guide-en.html)
+<!-- public-release:start -->
+Send numbered bundles of video, audio and subtitles to Telegram in your chosen order.
+
+**macOS 13+ · Apple Silicon · Release 1.1.2**
+
+**[Download](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · **[User guide](https://popovantondev.github.io/TelegramMediaSender/Guide-en.html)** · **[Report a problem](https://github.com/popovantondev/TelegramMediaSender/issues/new/choose)**
+
+**Requirements and limitations:** Requires your own Telegram account, API ID and API Hash; not notarized by Apple.
+
+**First steps:** Extract the ZIP, move Telegram Media Sender.app to Applications and follow the guide to connect Telegram.
+
+**Application files:**
+
+- [`TelegramMediaSender-1.1.2-macOS-arm64.zip`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/TelegramMediaSender-1.1.2-macOS-arm64.zip)
+
+**Checksums:** [`SHA256SUMS.txt`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt)
+<!-- public-release:end -->
 
 <img src="src/telegram_media_sender/assets/app-icon.svg" width="88" alt="Telegram Media Sender icon">
 
-**[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/latest)** · **[Deutsch](docs/de/README.md)** · **[Русский](docs/ru/README.md)** · **[English](docs/en/README.md)**
+**[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · **[Deutsch](docs/de/README.md)** · **[Русский](docs/ru/README.md)** · **[English](docs/en/README.md)**
 
 Apple Silicon (M1 or newer) · macOS 13+ · Version 1.1.2
 
@@ -27,7 +43,7 @@ The interface selects German, Russian, or English from the macOS language on fir
 
 ## Downloads
 
-Download the Apple Silicon build for macOS 13 or later from [Releases](https://github.com/popovantondev/TelegramMediaSender/releases). The current version is **1.1.2**. Unzip the download and move **Telegram Media Sender.app** to Applications.
+Download the Apple Silicon build for macOS 13 or later from [Releases](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2). The current version is **1.1.2**. Unzip the download and move **Telegram Media Sender.app** to Applications.
 
 The build is not notarized by Apple. Follow the first-launch instructions in the [user guide](docs/en/README.md).
 
