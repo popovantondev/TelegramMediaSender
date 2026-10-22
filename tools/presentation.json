@@ -1,0 +1,32 @@
+{
+  "folder": ".",
+  "shots": {
+    "ru": "docs/images/app-ru.png",
+    "de": "docs/images/app-de.png",
+    "en": "docs/images/app-en.png"
+  },
+  "icon": "presentation-icon.svg",
+  "palette": {
+    "accent": "#176aa0",
+    "tint": "#e6f4ff",
+    "hero": "#123858",
+    "hero-end": "#28638a"
+  },
+  "flow": {
+    "ru": [
+      "Выбрать файлы",
+      "Задать порядок",
+      "Отправить в Telegram"
+    ],
+    "de": [
+      "Dateien wählen",
+      "Reihenfolge festlegen",
+      "An Telegram senden"
+    ],
+    "en": [
+      "Select files",
+      "Set the order",
+      "Send to Telegram"
+    ]
+  }
+}
