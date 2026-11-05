@@ -6,9 +6,17 @@
     "en": "docs/images/app-en.png"
   },
   "icon": "presentation-icon.svg",
+  "stack": "Python · PySide6",
   "palette": {
     "accent": "#176aa0",
     "tint": "#e6f4ff",
+    "hero": "#123858",
+    "hero-end": "#28638a"
+  },
+  "palette_dark": {
+    "accent": "#5db8f0",
+    "accent-ink": "#04202f",
+    "tint": "#0f2c3d",
     "hero": "#123858",
     "hero-end": "#28638a"
   },
@@ -28,5 +36,169 @@
       "Set the order",
       "Send to Telegram"
     ]
+  },
+  "bento": {
+    "de": {
+      "inst_text": "Die Schritte aus „Erster Start“ in der Anleitung.",
+      "term": [
+        [
+          "ps",
+          "1. ZIP aus GitHub Releases laden und entpacken"
+        ],
+        [
+          "ps",
+          "2. App in den Ordner „Programme“ verschieben"
+        ],
+        [
+          "dim",
+          "   Blockiert Gatekeeper: Systemeinstellungen → Datenschutz & Sicherheit → Dennoch öffnen"
+        ],
+        [
+          "ps",
+          "3. Profil mit Telefonnummer, API ID und API Hash anlegen"
+        ],
+        [
+          "ps",
+          "4. Anmeldecode eingeben, bei Bedarf das Passwort der Zwei-Schritt-Verifizierung"
+        ],
+        [
+          "ok",
+          "5. Chats laden, Zielchat wählen, Pakete markieren, senden"
+        ]
+      ],
+      "tile": {
+        "title": "Sendet an Telegram",
+        "text": "Die App läuft lokal auf Ihrem Mac, sendet die gewählten Dateien aber über Ihr eigenes Telegram-Konto an Telegram. Profile und Sitzungsdateien bleiben auf diesem Mac; die App enthält keine Schlüssel.",
+        "chips": [
+          "Eigenes Telegram-Konto",
+          "API ID + API Hash"
+        ]
+      },
+      "features": [
+        "Nummerierte Pakete",
+        "Video · Audio · Untertitel",
+        "Versand in numerischer Reihenfolge",
+        "MP4, MKV, MOV, MP3, FLAC u. a.",
+        "Pakete nur mit Untertiteln",
+        "Prüfung auf bereits gesendete Dateien",
+        "Mehrere Profile",
+        "Oberfläche DE · RU · EN"
+      ],
+      "checks": [
+        "Automatische Prüfungen auf GitHub Actions (macOS 15): Kompilieren, Unit-Tests, App-Build",
+        "SHA-256-Prüfsumme (SHA256SUMS.txt) im Release",
+        "Version {v} mit Änderungsprotokoll (CHANGELOG)",
+        "Start des heruntergeladenen Release geprüft und dokumentiert (docs/release-check.md); ein weiterer Mac steht noch aus",
+        "Anleitung auf Deutsch, Englisch und Russisch"
+      ]
+    },
+    "en": {
+      "inst_text": "The steps from “First launch” in the guide.",
+      "term": [
+        [
+          "ps",
+          "1. Download the ZIP from GitHub Releases and unzip it"
+        ],
+        [
+          "ps",
+          "2. Move the app to the Applications folder"
+        ],
+        [
+          "dim",
+          "   If Gatekeeper blocks it: System Settings → Privacy & Security → Open Anyway"
+        ],
+        [
+          "ps",
+          "3. Add a profile with your phone number, API ID and API Hash"
+        ],
+        [
+          "ps",
+          "4. Enter the login code, and your two-step verification password if asked"
+        ],
+        [
+          "ok",
+          "5. Load chats, choose the target chat, select bundles, send"
+        ]
+      ],
+      "tile": {
+        "title": "Sends to Telegram",
+        "text": "The app runs locally on your Mac but sends the selected files to Telegram through your own Telegram account. Profiles and session files stay on this Mac; the app contains no keys.",
+        "chips": [
+          "Your own Telegram account",
+          "API ID + API Hash"
+        ]
+      },
+      "features": [
+        "Numbered bundles",
+        "Video · audio · subtitles",
+        "Sent in numeric order",
+        "MP4, MKV, MOV, MP3, FLAC and more",
+        "Subtitle-only bundles",
+        "Check for files already sent",
+        "Multiple profiles",
+        "Interface DE · RU · EN"
+      ],
+      "checks": [
+        "Automatic checks on GitHub Actions (macOS 15): compile, unit tests, app build",
+        "SHA-256 checksum (SHA256SUMS.txt) in the release",
+        "Version {v} with changelog",
+        "Start of the downloaded release checked and documented (docs/release-check.md); another Mac is still to be tested",
+        "Guide in German, English and Russian"
+      ]
+    },
+    "ru": {
+      "inst_text": "Шаги из раздела «Первый запуск» руководства.",
+      "term": [
+        [
+          "ps",
+          "1. Скачать ZIP из GitHub Releases и распаковать"
+        ],
+        [
+          "ps",
+          "2. Перенести приложение в папку «Программы»"
+        ],
+        [
+          "dim",
+          "   Если Gatekeeper блокирует запуск: Системные настройки → Конфиденциальность и безопасность → Открыть всё равно"
+        ],
+        [
+          "ps",
+          "3. Добавить профиль с номером телефона, API ID и API Hash"
+        ],
+        [
+          "ps",
+          "4. Ввести код входа и при запросе пароль двухэтапной проверки"
+        ],
+        [
+          "ok",
+          "5. Загрузить чаты, выбрать целевой чат, отметить наборы, отправить"
+        ]
+      ],
+      "tile": {
+        "title": "Отправляет в Telegram",
+        "text": "Приложение работает локально на вашем Mac, но отправляет выбранные файлы в Telegram через ваш собственный аккаунт. Профили и файлы сессий остаются на этом Mac; ключей в приложении нет.",
+        "chips": [
+          "Свой аккаунт Telegram",
+          "API ID + API Hash"
+        ]
+      },
+      "features": [
+        "Пронумерованные наборы",
+        "Видео · аудио · субтитры",
+        "Отправка по порядку номеров",
+        "MP4, MKV, MOV, MP3, FLAC и др.",
+        "Наборы только из субтитров",
+        "Проверка уже отправленных файлов",
+        "Несколько профилей",
+        "Интерфейс DE · RU · EN"
+      ],
+      "checks": [
+        "Автоматические проверки в GitHub Actions (macOS 15): компиляция, модульные тесты, сборка приложения",
+        "Контрольная сумма SHA-256 (SHA256SUMS.txt) в релизе",
+        "Версия {v} и журнал изменений",
+        "Запуск скачанного релиза проверен и описан (docs/release-check.md); другой Mac ещё не проверялся",
+        "Руководство на немецком, английском и русском"
+      ]
+    }
   }
 }

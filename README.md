@@ -1,86 +1,84 @@
 # Telegram Media Sender
 
 <!-- public-release:start -->
-Send numbered bundles of video, audio and subtitles to Telegram in your chosen order.
+Sendet nummerierte Pakete aus Video, Audio und Untertiteln in der gewählten Reihenfolge an Telegram.
 
 **macOS 13+ · Apple Silicon · Release 1.1.2**
 
-**[Download](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · **[User guide](https://popovantondev.github.io/TelegramMediaSender/Guide-en.html)** · **[Report a problem](https://github.com/popovantondev/TelegramMediaSender/issues/new/choose)**
+**[Herunterladen](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · **[Anleitung](https://popovantondev.github.io/TelegramMediaSender/Guide-de.html)** · **[Fehler melden](https://github.com/popovantondev/TelegramMediaSender/issues/new/choose)**
 
-**Requirements and limitations:** Requires your own Telegram account, API ID and API Hash; not notarized by Apple.
+**Voraussetzungen und Grenzen:** Eigenes Telegram-Konto, API ID und API Hash erforderlich; keine Apple-Notarisierung.
 
-**First steps:** Extract the ZIP, move Telegram Media Sender.app to Applications and follow the guide to connect Telegram.
+**Erste Schritte:** ZIP entpacken, Telegram Media Sender.app nach Applications verschieben und die Verbindung nach Anleitung einrichten.
 
-**Application files:**
+**App-Dateien:**
 
 - [`TelegramMediaSender-1.1.2-macOS-arm64.zip`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/TelegramMediaSender-1.1.2-macOS-arm64.zip)
 
-**Checksums:** [`SHA256SUMS.txt`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt)
+**Prüfsummen:** [`SHA256SUMS.txt`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt)
 <!-- public-release:end -->
 
-<img src="src/telegram_media_sender/assets/app-icon.svg" width="88" alt="Telegram Media Sender icon">
+<img src="src/telegram_media_sender/assets/app-icon.svg" width="88" alt="Telegram Media Sender Symbol">
 
-**[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · **[Deutsch](docs/de/README.md)** · **[Русский](docs/ru/README.md)** · **[English](docs/en/README.md)**
+**[Deutsch](README.md)** · **[Русский](README.ru.md)** · **[English](README.en.md)**
 
-Apple Silicon (M1 or newer) · macOS 13+ · Version 1.1.2
+Apple Silicon (M1 oder neuer) · macOS 13+ · Version 1.1.2
 
-**Telegram Media Sender** is a desktop app for macOS that sends ordered batches of local files to Telegram chats. A numbered bundle may contain video, audio, subtitles, or any combination of them. The app lists chats where the signed-in account can post, lets you select bundles, and shows upload progress.
+**Telegram Media Sender** ist eine macOS-App, die geordnete Stapel lokaler Dateien an Telegram-Chats sendet. Ein nummeriertes Paket kann Video, Audio, Untertitel oder eine beliebige Kombination davon enthalten. Die App listet Chats, in denen das angemeldete Konto schreiben darf, lässt Sie Pakete auswählen und zeigt den Upload-Fortschritt.
 
-The interface selects German, Russian, or English from the macOS language on first launch. You can choose another language in the window; restart the app to apply it. The window position is remembered.
+Beim ersten Start wählt die App Deutsch, Russisch oder Englisch passend zur macOS-Sprache. Im Fenster können Sie eine andere Sprache wählen; zum Übernehmen starten Sie die App neu. Die Fensterposition wird gespeichert.
 
-![Telegram Media Sender with example lecture bundles](docs/images/app-en.png)
+![Telegram Media Sender mit Beispielpaketen](docs/images/app-de.png)
 
-*Application interface rendered with demonstration files. No Telegram account is connected; no files were uploaded.*
+*Oberfläche mit Beispieldateien. Es ist kein Telegram-Konto verbunden; es wurden keine Dateien hochgeladen.*
 
-## What you can send
+## Was Sie senden können
 
-| Use case | Example files | Result |
+| Anwendungsfall | Beispieldateien | Ergebnis |
 | --- | --- | --- |
-| Lecture recordings | `001 Introduction.mp4`, `002 Lecture.mp4` | Two bundles, sent in numeric order |
-| Video and separate audio | `003 Lecture.mp4`, `003 Lecture.m4a` | One bundle with both files |
-| Video with subtitles | `004 Lesson.mp4`, `004 Lesson.ru.srt`, `004 Lesson.de.srt` | One bundle with video and subtitles |
-| Subtitles only | `005 Notes.ru.srt`, `005 Notes.de.srt` | One subtitle-only bundle |
+| Vorlesungsaufnahmen | `001 Einführung.mp4`, `002 Vorlesung.mp4` | Zwei Pakete, in numerischer Reihenfolge gesendet |
+| Video und separates Audio | `003 Vorlesung.mp4`, `003 Vorlesung.m4a` | Ein Paket mit beiden Dateien |
+| Video mit Untertiteln | `004 Lektion.mp4`, `004 Lektion.ru.srt`, `004 Lektion.de.srt` | Ein Paket mit Video und Untertiteln |
+| Nur Untertitel | `005 Notizen.ru.srt`, `005 Notizen.de.srt` | Ein Paket nur mit Untertiteln |
 
 ## Downloads
 
-Download the Apple Silicon build for macOS 13 or later from [Releases](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2). The current version is **1.1.2**. Unzip the download and move **Telegram Media Sender.app** to Applications.
+Laden Sie den Apple-Silicon-Build für macOS 13 oder neuer unter [Releases](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2) herunter. Die aktuelle Version ist **1.1.2**. Entpacken Sie die ZIP-Datei und verschieben Sie **Telegram Media Sender.app** in den Ordner „Programme“.
 
-The build is not notarized by Apple. Follow the first-launch instructions in the [user guide](docs/en/README.md).
+Der Build ist nicht von Apple notarisiert. Die Schritte für den ersten Start stehen im [Benutzerhandbuch](docs/de/README.md).
 
-## Quick start
+## Schnellstart
 
-1. Install a release build and open **Telegram Media Sender**.
-2. Create a Telegram API application and add its API ID and API Hash to a profile. Follow [Telegram connection setup](docs/en/telegram-setup.md).
-3. Enter the login code Telegram sends to your account, and your two-step verification password if prompted.
-4. Choose a folder containing numbered files, load your chats, select the destination and groups, and send.
+1. Installieren Sie einen Release-Build und öffnen Sie **Telegram Media Sender**.
+2. Legen Sie eine Telegram-API-Anwendung an und tragen Sie API ID und API Hash in einem Profil ein. Die Schritte stehen unter [Telegram verbinden](docs/de/telegram-setup.md).
+3. Geben Sie den Anmeldecode ein, den Telegram an Ihr Konto sendet, und bei Nachfrage Ihr Passwort für die Zwei-Schritt-Verifizierung.
+4. Wählen Sie einen Ordner mit nummerierten Dateien, laden Sie Ihre Chats, wählen Sie Ziel und Pakete und senden Sie.
 
-The app does not contain API keys or a Telegram account. Profile data and Telegram sessions are stored in the app's own folder under `~/Library/Application Support/TelegramMediaSender`. The profile selector is empty until a named profile exists. On first launch, explicitly named compatible profiles and their SQLite sessions from the earlier Telegram Archive sender are copied into this folder; the earlier app's data is preserved. The old app's unnamed default account is not added automatically. Profiles can be removed with **Profiles… → Delete…**. A session file is sensitive: anyone who obtains it may be able to access the Telegram account. Do not share it or upload it to this repository.
+Die App enthält weder API-Schlüssel noch ein Telegram-Konto. Profildaten und Telegram-Sitzungen liegen im eigenen Ordner der App unter `~/Library/Application Support/TelegramMediaSender`. Die Profilauswahl ist leer, bis ein benanntes Profil existiert. Beim ersten Start können ausdrücklich benannte, kompatible Profile samt SQLite-Sitzungen aus der Vorgängerversion der App in diesen Ordner kopiert werden; die Daten der Vorgängerversion bleiben erhalten. Das unbenannte Standardkonto wird nicht automatisch übernommen. Profile lassen sich über **Profile… → Löschen…** entfernen. Eine Sitzungsdatei ist sensibel: Wer sie erhält, kann möglicherweise auf das Telegram-Konto zugreifen. Geben Sie sie nicht weiter und laden Sie sie nicht in dieses Repository hoch.
 
-## Supported folder layout
+## Unterstütztes Ordnerlayout
 
-Give related files the same leading number to place them in one bundle. Bundles are sent in numeric order. For example:
+Geben Sie zusammengehörigen Dateien dieselbe führende Nummer, damit sie ein Paket bilden. Pakete werden in numerischer Reihenfolge gesendet. Zum Beispiel:
 
 ```text
-001 Lesson.ru.mp4
-001 Lesson.ru.srt
-001 Lesson.de.srt
-001 Lesson alternate.srt
+001 Lektion.ru.mp4
+001 Lektion.ru.srt
+001 Lektion.de.srt
+001 Lektion alternativ.srt
 ```
 
-Supported media: MP4, M4V, MOV, MKV, WebM, AVI, M4A, MP3, AAC, OGG, WAV, and FLAC. A bundle can also contain only media or only `.srt` subtitles. Subtitle names may differ slightly; files with the same leading number are grouped together. All matching subtitles are included, and the app warns when several files match one language. Before uploading, the app compares file names and sizes against the selected chat history and asks what to do when it finds a possible match.
+Unterstützte Medien: MP4, M4V, MOV, MKV, WebM, AVI, M4A, MP3, AAC, OGG, WAV und FLAC. Ein Paket kann auch nur Medien oder nur `.srt`-Untertitel enthalten. Untertitelnamen dürfen leicht abweichen; Dateien mit derselben führenden Nummer werden zusammengefasst. Alle passenden Untertitel werden gesendet; bei mehreren Dateien für dieselbe Sprache warnt die App. Vor dem Upload vergleicht die App Dateinamen und Größen mit dem Verlauf des gewählten Chats und fragt bei einem möglichen Treffer nach.
 
-## Technology
+## Technik
 
 - Python 3.12+
-- PySide6 / Qt for the macOS desktop interface
-- Telethon for Telegram's MTProto API
-- PyInstaller for standalone macOS packaging
+- PySide6 / Qt für die macOS-Oberfläche
+- Telethon für die MTProto-API von Telegram
+- PyInstaller für das eigenständige macOS-Paket
 
-## Build from source
+## Aus dem Quellcode bauen
 
-The packaged development app is at `dist/TelegramMediaSender-1.1.2-macOS-arm64/Telegram Media Sender.app`.
-
-On macOS with Xcode Command Line Tools and Python 3.12 installed:
+Auf einem Mac mit Xcode Command Line Tools und Python 3.12:
 
 ```bash
 git clone https://github.com/popovantondev/TelegramMediaSender.git
@@ -88,21 +86,21 @@ cd TelegramMediaSender
 bash scripts/build_macos.sh
 ```
 
-The app bundle is written to `dist/`. See the developer notes in [English](docs/en/development.md), [Deutsch](docs/de/development.md), or [Русский](docs/ru/development.md).
+Das App-Bundle wird in `dist/` geschrieben. Hinweise für Entwickler: [Deutsch](docs/de/development.md), [English](docs/en/development.md), [Русский](docs/ru/development.md).
 
-## Documentation
+## Dokumentation
 
 - [Deutsch](docs/de/README.md) · [Telegram verbinden](docs/de/telegram-setup.md)
 - [Русский](docs/ru/README.md) · [Подключение Telegram](docs/ru/telegram-setup.md)
 - [English](docs/en/README.md) · [Connect Telegram](docs/en/telegram-setup.md)
-- [Changelog](CHANGELOG.md)
+- [Änderungsprotokoll (English)](CHANGELOG.md)
 
-## Feedback
+## Rückmeldung
 
-[Report a bug or suggest a feature](https://github.com/popovantondev/TelegramMediaSender/issues/new/choose). You can write in English, German or Russian. Include your app version and macOS version; remove personal details from screenshots.
+[Fehler melden oder Funktion vorschlagen](https://github.com/popovantondev/TelegramMediaSender/issues/new/choose). Sie können Deutsch, Russisch oder Englisch schreiben. Nennen Sie die App- und die macOS-Version und entfernen Sie persönliche Angaben aus Screenshots.
 
-[Release verification and another-Mac checklist](docs/release-check.md).
+[Release-Prüfung und Checkliste für einen weiteren Mac](docs/release-check.md).
 
-## Rights and third-party software
+## Rechte und Software von Drittanbietern
 
-This project has no open-source license. Public availability does not grant permission to reuse, modify, redistribute, or sell its source. The release binary may be downloaded and run for personal use. See [RIGHTS.md](RIGHTS.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
+Dieses Projekt hat keine Open-Source-Lizenz. Die öffentliche Verfügbarkeit erlaubt weder Wiederverwendung noch Änderung, Weitergabe oder Verkauf des Quellcodes. Das Release-Binary darf für den persönlichen Gebrauch heruntergeladen und ausgeführt werden. Siehe [RIGHTS.md](RIGHTS.md) (English) und die [Hinweise zu Drittanbietern](THIRD_PARTY_NOTICES.md) (English).

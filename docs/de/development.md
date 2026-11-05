@@ -16,4 +16,4 @@ python -m pip install -e .
 PYTHONPATH=src QT_QPA_PLATFORM=offscreen python -m unittest discover -s tests -v
 ```
 
-Baue mit `bash scripts/build_macos.sh`. Prüfe das App-Bundle vor der Veröffentlichung. Profile, Telegram-Sitzungsdatenbanken und lokale Einstellungen gehören nicht in das Release-Archiv.
+Bauen Sie mit `bash scripts/build_macos.sh`. Prüfen Sie das App-Bundle vor der Veröffentlichung. Profile, Telegram-Sitzungsdatenbanken und lokale Einstellungen gehören nicht in das Release-Archiv.

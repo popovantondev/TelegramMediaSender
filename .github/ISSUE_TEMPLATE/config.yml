@@ -1,11 +1,11 @@
-blank_issues_enabled: true
+﻿blank_issues_enabled: true
 contact_links:
-  - name: Инструкция · Русский
-    url: https://popovantondev.github.io/TelegramMediaSender/Guide-ru.html
-    about: Установка, подключение Telegram и помощь.
   - name: Anleitung · Deutsch
     url: https://popovantondev.github.io/TelegramMediaSender/Guide-de.html
     about: Installation, Telegram-Verbindung und Hilfe.
   - name: User guide · English
     url: https://popovantondev.github.io/TelegramMediaSender/Guide-en.html
     about: Installation, Telegram connection and help.
+  - name: Инструкция · Русский
+    url: https://popovantondev.github.io/TelegramMediaSender/Guide-ru.html
+    about: Установка, подключение Telegram и помощь.

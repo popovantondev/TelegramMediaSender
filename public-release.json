@@ -23,13 +23,15 @@
   "source_url": "https://github.com/popovantondev/TelegramMediaSender",
   "readmes": {
     "en": [
-      "README.md",
+      "README.en.md",
       "docs/en/README.md"
     ],
     "de": [
+      "README.md",
       "docs/de/README.md"
     ],
     "ru": [
+      "README.ru.md",
       "docs/ru/README.md"
     ]
   },
