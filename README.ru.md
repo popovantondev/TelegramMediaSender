@@ -1,5 +1,7 @@
 # Telegram Media Sender
 
+**[Deutsch](README.md)** · **[Русский](README.ru.md)** · **[English](README.en.md)**
+
 <!-- public-release:start -->
 Отправляет пронумерованные наборы видео, аудио и субтитров в Telegram в выбранном порядке.
 
@@ -19,8 +21,6 @@
 <!-- public-release:end -->
 
 <img src="src/telegram_media_sender/assets/app-icon.svg" width="88" alt="Значок Telegram Media Sender">
-
-**[Deutsch](README.md)** · **[Русский](README.ru.md)** · **[English](README.en.md)**
 
 Apple Silicon (M1 или новее) · macOS 13+ · Версия 1.1.2
 
