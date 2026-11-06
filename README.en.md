@@ -1,5 +1,7 @@
 # Telegram Media Sender
 
+[Deutsch](README.md) · [Русский](README.ru.md) · **English**
+
 <!-- public-release:start -->
 Send numbered bundles of video, audio and subtitles to Telegram in your chosen order.
 
@@ -20,7 +22,7 @@ Send numbered bundles of video, audio and subtitles to Telegram in your chosen o
 
 <img src="src/telegram_media_sender/assets/app-icon.svg" width="88" alt="Telegram Media Sender icon">
 
-**[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · **[Deutsch](README.md)** · **[Русский](README.ru.md)** · **[English](README.en.md)**
+**[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)**
 
 Apple Silicon (M1 or newer) · macOS 13+ · Version 1.1.2
 
