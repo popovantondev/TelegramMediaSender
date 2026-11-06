@@ -1,6 +1,10 @@
+<div align="center">
+  <img src="src/telegram_media_sender/assets/app-icon.svg" width="128" alt="Значок Telegram Media Sender">
+</div>
+
 # Telegram Media Sender
 
-**[Deutsch](README.md)** · **[Русский](README.ru.md)** · **[English](README.en.md)**
+**Русский** · [Deutsch](README.md) · [English](README.en.md)
 
 <!-- public-release:start -->
 Отправляет пронумерованные наборы видео, аудио и субтитров в Telegram в выбранном порядке.
@@ -20,17 +24,15 @@
 **Контрольные суммы:** [`SHA256SUMS.txt`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt)
 <!-- public-release:end -->
 
-<img src="src/telegram_media_sender/assets/app-icon.svg" width="88" alt="Значок Telegram Media Sender">
-
-Apple Silicon (M1 или новее) · macOS 13+ · Версия 1.1.2
-
-**Telegram Media Sender** — приложение для macOS, которое отправляет упорядоченные наборы локальных файлов в чаты Telegram. Нумерованный набор может содержать видео, аудио, субтитры или любое их сочетание. Приложение показывает чаты, в которые вошедший аккаунт может писать, позволяет выбрать наборы и показывает ход загрузки.
-
-При первом запуске приложение выбирает немецкий, русский или английский язык по языку macOS. В окне можно выбрать другой язык; чтобы он применился, перезапустите приложение. Положение окна запоминается.
+**[Сайт](https://popovantondev.github.io/TelegramMediaSender/index-ru.html)**
 
 ![Telegram Media Sender с примерами наборов](docs/images/app-ru.png)
 
 *Интерфейс с демонстрационными файлами. Аккаунт Telegram не подключён, файлы не загружались.*
+
+**Telegram Media Sender** — приложение для macOS, которое отправляет упорядоченные наборы локальных файлов в чаты Telegram. Нумерованный набор может содержать видео, аудио, субтитры или любое их сочетание. Приложение показывает чаты, в которые вошедший аккаунт может писать, позволяет выбрать наборы и показывает ход загрузки.
+
+При первом запуске приложение выбирает немецкий, русский или английский язык по языку macOS. В окне можно выбрать другой язык; чтобы он применился, перезапустите приложение. Положение окна запоминается.
 
 ## Что можно отправлять
 

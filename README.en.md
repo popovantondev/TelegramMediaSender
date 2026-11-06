@@ -1,6 +1,10 @@
+<div align="center">
+  <img src="src/telegram_media_sender/assets/app-icon.svg" width="128" alt="Telegram Media Sender icon">
+</div>
+
 # Telegram Media Sender
 
-[Deutsch](README.md) · [Русский](README.ru.md) · **English**
+[Русский](README.ru.md) · [Deutsch](README.md) · **English**
 
 <!-- public-release:start -->
 Send numbered bundles of video, audio and subtitles to Telegram in your chosen order.
@@ -20,19 +24,15 @@ Send numbered bundles of video, audio and subtitles to Telegram in your chosen o
 **Checksums:** [`SHA256SUMS.txt`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt)
 <!-- public-release:end -->
 
-<img src="src/telegram_media_sender/assets/app-icon.svg" width="88" alt="Telegram Media Sender icon">
-
-**[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)**
-
-Apple Silicon (M1 or newer) · macOS 13+ · Version 1.1.2
-
-**Telegram Media Sender** is a desktop app for macOS that sends ordered batches of local files to Telegram chats. A numbered bundle may contain video, audio, subtitles, or any combination of them. The app lists chats where the signed-in account can post, lets you select bundles, and shows upload progress.
-
-The interface selects German, Russian, or English from the macOS language on first launch. You can choose another language in the window; restart the app to apply it. The window position is remembered.
+**[Website](https://popovantondev.github.io/TelegramMediaSender/index-en.html)**
 
 ![Telegram Media Sender with example lecture bundles](docs/images/app-en.png)
 
 *Application interface rendered with demonstration files. No Telegram account is connected; no files were uploaded.*
+
+**Telegram Media Sender** is a desktop app for macOS that sends ordered batches of local files to Telegram chats. A numbered bundle may contain video, audio, subtitles, or any combination of them. The app lists chats where the signed-in account can post, lets you select bundles, and shows upload progress.
+
+The interface selects German, Russian, or English from the macOS language on first launch. You can choose another language in the window; restart the app to apply it. The window position is remembered.
 
 ## What you can send
 
