@@ -1,3 +1,7 @@
+<!-- ppk-readme:head:start -->
+<a href="https://popovantondev.github.io/TelegramMediaSender/index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/header-de-dark.30c36a3d.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/header-de-light.d7527eff.svg" width="880" height="188" alt="Telegram Media Sender — Sendet Pakete aus Video, Audio und Untertiteln an Telegram. macOS 13+ · Apple Silicon, Release 1.1.2"></picture></a>
+<!-- ppk-readme:head:end -->
+
 # Benutzerhandbuch
 
 <!-- public-release:start -->
@@ -18,9 +22,21 @@ Sendet nummerierte Pakete aus Video, Audio und Untertiteln in der gewählten Rei
 **Prüfsummen:** [`SHA256SUMS.txt`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt)
 <!-- public-release:end -->
 
-**[Für macOS herunterladen](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · [Deutsch](../de/README.md) · [Русский](../ru/README.md) · [English](../en/README.md)
+[Deutsch](../de/README.md) · [Русский](../ru/README.md) · [English](../en/README.md)
 
-![Telegram Media Sender](../images/app-de.png)
+<!-- ppk-readme:body:start -->
+<p>
+<a href="https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-download-de-dark.80c248fe.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-download-de-light.04cb5971.svg" width="171" height="36" alt="Herunterladen"></picture></a>
+<a href="https://popovantondev.github.io/TelegramMediaSender/index.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-website-de-dark.94ba29d1.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-website-de-light.c5c10c1d.svg" width="129" height="36" alt="Webseite"></picture></a>
+<a href="https://popovantondev.github.io/TelegramMediaSender/Guide-de.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-guide-de-dark.e4856881.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-guide-de-light.bd15f766.svg" width="134" height="36" alt="Anleitung"></picture></a>
+<a href="https://github.com/popovantondev/TelegramMediaSender/issues/new/choose"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-bug-de-dark.171175e6.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-bug-de-light.8609d423.svg" width="168" height="36" alt="Fehler melden"></picture></a>
+</p>
+
+<p><a href="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/images/app-de.png"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/preview-de-dark.a3bc8917.webp"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/preview-de-light.6451fd9c.webp" width="880" height="516" alt="Oberfläche von Telegram Media Sender"></picture></a><br>
+<sub><a href="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/images/app-de.png">Ganzer Screenshot</a></sub></p>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/divider-dark.8ad4e668.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/divider-light.eab72319.svg" width="880" height="6" alt="Trennlinie"></picture>
+<!-- ppk-readme:body:end -->
 
 *Oberfläche mit Beispieldateien; kein Telegram-Konto ist verbunden.*
 

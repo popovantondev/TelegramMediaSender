@@ -1,10 +1,24 @@
-<div align="center">
-  <img src="src/telegram_media_sender/assets/app-icon.svg" width="128" alt="Значок Telegram Media Sender">
-</div>
+<!-- ppk-readme:head:start -->
+<a href="https://popovantondev.github.io/TelegramMediaSender/index-ru.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/header-ru-dark.21ada65c.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/header-ru-light.24ad15e8.svg" width="880" height="188" alt="Telegram Media Sender — Отправляет наборы видео, аудио и субтитров в Telegram. macOS 13+ · Apple Silicon, Выпуск 1.1.2"></picture></a>
+<!-- ppk-readme:head:end -->
 
 # Telegram Media Sender
 
 **Русский** · [Deutsch](README.md) · [English](README.en.md)
+
+<!-- ppk-readme:body:start -->
+<p>
+<a href="https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-download-ru-dark.04694287.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-download-ru-light.6ba3d253.svg" width="120" height="36" alt="Скачать"></picture></a>
+<a href="https://popovantondev.github.io/TelegramMediaSender/index-ru.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-website-ru-dark.d3d04f61.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-website-ru-light.6852579c.svg" width="92" height="36" alt="Сайт"></picture></a>
+<a href="https://popovantondev.github.io/TelegramMediaSender/Guide-ru.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-guide-ru-dark.7653a777.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-guide-ru-light.9d69fb69.svg" width="161" height="36" alt="Руководство"></picture></a>
+<a href="https://github.com/popovantondev/TelegramMediaSender/issues/new/choose"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-bug-ru-dark.83f1de3c.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-bug-ru-light.4ce8fec9.svg" width="234" height="36" alt="Сообщить об ошибке"></picture></a>
+</p>
+
+<p><a href="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/images/app-ru.png"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/preview-ru-dark.8e89789b.webp"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/preview-ru-light.7070ffa6.webp" width="880" height="516" alt="Интерфейс программы Telegram Media Sender"></picture></a><br>
+<sub><a href="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/images/app-ru.png">Снимок целиком</a></sub></p>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/divider-dark.8ad4e668.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/divider-light.eab72319.svg" width="880" height="6" alt="Разделитель"></picture>
+<!-- ppk-readme:body:end -->
 
 <!-- public-release:start -->
 Отправляет пронумерованные наборы видео, аудио и субтитров в Telegram в выбранном порядке.
@@ -23,10 +37,6 @@
 
 **Контрольные суммы:** [`SHA256SUMS.txt`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt)
 <!-- public-release:end -->
-
-**[Сайт](https://popovantondev.github.io/TelegramMediaSender/index-ru.html)**
-
-![Telegram Media Sender с примерами наборов](docs/images/app-ru.png)
 
 *Интерфейс с демонстрационными файлами. Аккаунт Telegram не подключён, файлы не загружались.*
 

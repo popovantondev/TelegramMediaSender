@@ -1,3 +1,7 @@
+<!-- ppk-readme:head:start -->
+<a href="https://popovantondev.github.io/TelegramMediaSender/index-en.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/header-en-dark.76717b7c.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/header-en-light.bc6d6dec.svg" width="880" height="188" alt="Telegram Media Sender — Sends bundles of video, audio and subtitles to Telegram. macOS 13+ · Apple Silicon, Release 1.1.2"></picture></a>
+<!-- ppk-readme:head:end -->
+
 # User guide
 
 <!-- public-release:start -->
@@ -18,9 +22,21 @@ Send numbered bundles of video, audio and subtitles to Telegram in your chosen o
 **Checksums:** [`SHA256SUMS.txt`](https://github.com/popovantondev/TelegramMediaSender/releases/download/v1.1.2/SHA256SUMS.txt)
 <!-- public-release:end -->
 
-**[Download for macOS](https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2)** · [Deutsch](../de/README.md) · [Русский](../ru/README.md) · [English](../en/README.md)
+[Deutsch](../de/README.md) · [Русский](../ru/README.md) · [English](../en/README.md)
 
-![Telegram Media Sender](../images/app-en.png)
+<!-- ppk-readme:body:start -->
+<p>
+<a href="https://github.com/popovantondev/TelegramMediaSender/releases/tag/v1.1.2"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-download-en-dark.8d7fbaf0.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-download-en-light.cead4c25.svg" width="136" height="36" alt="Download"></picture></a>
+<a href="https://popovantondev.github.io/TelegramMediaSender/index-en.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-website-en-dark.972fd72a.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-website-en-light.a1a9dfb0.svg" width="120" height="36" alt="Website"></picture></a>
+<a href="https://popovantondev.github.io/TelegramMediaSender/Guide-en.html"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-guide-en-dark.23ac2bcf.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-guide-en-light.95c07aa1.svg" width="141" height="36" alt="User guide"></picture></a>
+<a href="https://github.com/popovantondev/TelegramMediaSender/issues/new/choose"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-bug-en-dark.53be7cba.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/btn-bug-en-light.c0b2c1b0.svg" width="196" height="36" alt="Report a problem"></picture></a>
+</p>
+
+<p><a href="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/images/app-en.png"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/preview-en-dark.04715d1e.webp"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/preview-en-light.e0397dc1.webp" width="880" height="516" alt="Telegram Media Sender interface"></picture></a><br>
+<sub><a href="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/images/app-en.png">Full screenshot</a></sub></p>
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/divider-dark.8ad4e668.svg"><img src="https://raw.githubusercontent.com/popovantondev/TelegramMediaSender/main/docs/readme/divider-light.eab72319.svg" width="880" height="6" alt="Divider"></picture>
+<!-- ppk-readme:body:end -->
 
 *Application interface with demonstration files; no Telegram account is connected.*
 
