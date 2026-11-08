@@ -43,7 +43,7 @@ python -c 'import shutil; shutil.rmtree("'"$STAGE"'", ignore_errors=True)'
 mkdir -p "$STAGE"
 cp -R "dist/Telegram Media Sender.app" "$STAGE/"
 cp RIGHTS.md THIRD_PARTY_NOTICES.md "$STAGE/"
-cp README.md "$STAGE/"
+cp README.md README.en.md README.ru.md "$STAGE/"
 cp -R docs "$STAGE/"
 cp -R build-assets/licenses "$STAGE/Third Party Licenses"
 ditto -c -k --sequesterRsrc --keepParent "$STAGE" "dist/TelegramMediaSender-1.1.2-macOS-arm64.zip"
