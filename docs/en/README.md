@@ -60,6 +60,4 @@ Before upload, the app checks the chosen chat for files with matching names and 
 
 Profiles and session files stay on this Mac under `~/Library/Application Support/TelegramMediaSender/MediaGroupSender`. The selector starts empty until a named profile exists. Named profiles from the earlier app can be imported once; its unnamed default account is not added automatically. Profile values are stored in a local file with macOS account-only permissions; the app does not upload them. Treat a `.session` file as a password: do not share, email, or upload it. Use Telegram's active sessions settings to revoke a session if you suspect it was copied.
 
-## Languages and window
-
 The first launch follows the macOS language when it is German, Russian, or English. Select another language in the app and restart to apply it. The window position is saved locally.
